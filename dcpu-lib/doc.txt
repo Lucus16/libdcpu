@@ -6,9 +6,9 @@ No hardware ticks, hardware keeps track of time by use of events.
 
 typedef struct event {
     enum {breakpoint, device, } type;
-    void *data;
+    void* data;
     int time;
-    struct event *nextevent;
+    struct event* nextevent;
 } event;
 
 Event ha

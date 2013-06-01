@@ -1,7 +1,7 @@
 #include "dcpu.h"
 
-DCPU *newDCPU() {
-    DCPU *dcpu = malloc(sizeof(DCPU));
+DCPU* newDCPU() {
+    DCPU* dcpu = malloc(sizeof(DCPU));
     if (dcpu == NULL) {
         return NULL;
     }
@@ -18,8 +18,8 @@ DCPU *newDCPU() {
 
 void destroyDCPU(DCPU* dcpu) {
     //free all events
-    Event *ne = dcpu->nextevent;
-    Event *del = NULL;
+    Event* ne = dcpu->nextevent;
+    Event* del = NULL;
     while (ne) {
         del = ne;
         ne = ne->nextevent;
@@ -92,7 +92,7 @@ int docycles(DCPU* dcpu, int cyclestodo) {
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
         }
-        Event *ne = dcpu->nextevent;
+        Event* ne = dcpu->nextevent;
         while (ne) {
             if (ne->time <= dcpu->cycleno) {
                 ne->ontrigger(dcpu, ne->data);
@@ -124,7 +124,7 @@ int docycles(DCPU* dcpu, int cyclestodo) {
     return dcpu->cycleno - (targetcycles - cyclestodo);
 }
 
-void addInterrupt(DCPU *dcpu, word value) {
+void addInterrupt(DCPU* dcpu, word value) {
     dcpu->interruptCount++;
     dcpu->interrupts[(dcpu->firstInterrupt + ++dcpu->interruptCount) & 0xff] = value;
     if (dcpu->interruptCount > 256) {
@@ -132,7 +132,7 @@ void addInterrupt(DCPU *dcpu, word value) {
     }
 }
 
-int addEvent(DCPU *dcpu, int time, void (*ontrigger)(DCPU*, void*), void *data) {
+int addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data) {
     Event* event = malloc(sizeof(event));
     if (event == NULL) {
         return 1; //error: out of memory
@@ -159,36 +159,36 @@ int addEvent(DCPU *dcpu, int time, void (*ontrigger)(DCPU*, void*), void *data) 
     return 0;
 }
 
-void SET(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void SET(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, aValue.u);
     dcpu->cycleno += 1;
 }
 
-void ADD(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void ADD(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u + aValue.u);
     dcpu->regEX = bValue.u + aValue.u > 0xffff ? 1 : 0;
     dcpu->cycleno += 2;
 }
 
-void SUB(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void SUB(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u - aValue.u);
     dcpu->regEX = bValue.u - aValue.u < 0 ? -1 : 0;
     dcpu->cycleno += 2;
 }
 
-void MUL(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void MUL(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u * aValue.u);
     dcpu->regEX = (bValue.u * aValue.u) >> 16;
     dcpu->cycleno += 2;
 }
 
-void MLI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void MLI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.s * aValue.s);
     dcpu->regEX = (bValue.s * aValue.s) >> 16;
     dcpu->cycleno += 2;
 }
 
-void DIV(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void DIV(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     if (aValue.u == 0) {
         setB(dcpu, instruction, 0);
         dcpu->regEX = 0;
@@ -199,7 +199,7 @@ void DIV(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->cycleno += 3;
 }
 
-void DVI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void DVI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     if (aValue.s == 0) {
         setB(dcpu, instruction, 0);
         dcpu->regEX = 0;
@@ -210,7 +210,7 @@ void DVI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->cycleno += 3;
 }
 
-void MOD(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void MOD(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     if (aValue.u == 0) {
         setB(dcpu, instruction, 0);
     } else {
@@ -219,7 +219,7 @@ void MOD(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->cycleno += 3;
 }
 
-void MDI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void MDI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     if (aValue.s == 0) {
         setB(dcpu, instruction, 0);
     } else {
@@ -228,167 +228,174 @@ void MDI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->cycleno += 3;
 }
 
-void AND(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void AND(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u & aValue.u);
     dcpu->cycleno += 1;
 }
 
-void BOR(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void BOR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u | aValue.u);
     dcpu->cycleno += 1;
 }
 
-void XOR(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void XOR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u ^ aValue.u);
     dcpu->cycleno += 1;
 }
 
-void SHR(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void SHR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u >> aValue.u);
     dcpu->cycleno += 1;
 }
 
-void ASR(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void ASR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.s >> aValue.u);
     dcpu->cycleno += 1;
 }
 
-void SHL(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void SHL(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, bValue.u << aValue.u);
     dcpu->cycleno += 1;
 }
 
-void IFB(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFB(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = !(bValue.u & aValue.u);
     dcpu->cycleno += 2;
 }
 
-void IFC(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFC(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = bValue.u & aValue.u;
     dcpu->cycleno += 2;
 }
 
-void IFE(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFE(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = !(bValue.u == aValue.u);
     dcpu->cycleno += 2;
 }
 
-void IFN(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFN(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = bValue.u == aValue.u;
     dcpu->cycleno += 2;
 }
 
-void IFG(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFG(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = bValue.u <= aValue.u;
     dcpu->cycleno += 2;
 }
 
-void IFA(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFA(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = bValue.s <= aValue.s;
     dcpu->cycleno += 2;
 }
 
-void IFL(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFL(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = bValue.u >= aValue.u;
     dcpu->cycleno += 2;
 }
 
-void IFU(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void IFU(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->skipping = bValue.s >= aValue.s;
     dcpu->cycleno += 2;
 }
 
-void ADX(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void ADX(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     int tmp = bValue.u + aValue.u + dcpu->regEX;
     setB(dcpu, instruction, tmp);
     dcpu->regEX = tmp > 0xffff ? 1 : 0;
     dcpu->cycleno += 3;
 }
 
-void SBX(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void SBX(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     int tmp = bValue.u - aValue.u + dcpu->regEX;
     setB(dcpu, instruction, tmp);
     dcpu->regEX = tmp > 0xffff ? 1 : tmp < 0 ? -1 : 0;
     dcpu->cycleno += 3;
 }
 
-void STI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void STI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, aValue.u);
     dcpu->regI++;
     dcpu->regJ++;
     dcpu->cycleno += 2;
 }
 
-void STD(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void STD(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     setB(dcpu, instruction, aValue.u);
     dcpu->regI--;
     dcpu->regJ--;
     dcpu->cycleno += 2;
 }
 
-void INV(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
+void INV(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
     dcpu->cycleno += 1;
     if (dcpu->oninvalid) {
         dcpu->oninvalid(dcpu);
     }
 }
 
-void JSR(DCPU *dcpu, word instruction, wordu aValue) {
+void JSR(DCPU* dcpu, word instruction, wordu aValue) {
     push(dcpu, dcpu->regPC);
     dcpu->regPC = aValue.u;
     dcpu->cycleno += 3;
 }
 
-void INT(DCPU *dcpu, word instruction, wordu aValue) {
+void INT(DCPU* dcpu, word instruction, wordu aValue) {
     addInterrupt(dcpu, aValue.u);
     dcpu->cycleno += 4;
 }
 
-void IAG(DCPU *dcpu, word instruction, wordu aValue) {
+void IAG(DCPU* dcpu, word instruction, wordu aValue) {
     setA(dcpu, instruction, dcpu->regIA);
     dcpu->cycleno += 1;
 }
 
-void IAS(DCPU *dcpu, word instruction, wordu aValue) {
+void IAS(DCPU* dcpu, word instruction, wordu aValue) {
     dcpu->regIA = aValue.u;
     dcpu->cycleno += 1;
 }
 
-void RFI(DCPU *dcpu, word instruction, wordu aValue) {
+void RFI(DCPU* dcpu, word instruction, wordu aValue) {
     dcpu->queuing = false;
     dcpu->regA = pop(dcpu);
     dcpu->regPC = pop(dcpu);
     dcpu->cycleno += 3;
 }
 
-void IAQ(DCPU *dcpu, word instruction, wordu aValue) {
+void IAQ(DCPU* dcpu, word instruction, wordu aValue) {
     dcpu->queuing = aValue.u;
     dcpu->cycleno += 2;
 }
 
-void HWN(DCPU *dcpu, word instruction, wordu aValue) {
-    //TODO: Implement
+void HWN(DCPU* dcpu, word instruction, wordu aValue) {
+    setA(dcpu, instruction, dcpu->deviceCount);
     dcpu->cycleno += 2;
 }
 
-void HWQ(DCPU *dcpu, word instruction, wordu aValue) {
-    //TODO: Implement
+void HWQ(DCPU* dcpu, word instruction, wordu aValue) {
+    if (aValue.u < dcpu->deviceCount) {
+        Super* super = &dcpu->devices[aValue.u].super;
+        dcpu->regA = super->ID & 0xffff;
+        dcpu->regB = super->ID >> 16;
+        dcpu->regC = super->version;
+        dcpu->regX = super->manufacturer & 0xffff;
+        dcpu->regY = super->manufacturer >> 16;
+    }
     dcpu->cycleno += 4;
 }
 
-void HWI(DCPU *dcpu, word instruction, wordu aValue) {
-    //TODO: Implement
+void HWI(DCPU* dcpu, word instruction, wordu aValue) {
+    dcpu->devices[aValue.u].handleInterrupt(&dcpu->devices[aValue.u]);
     dcpu->cycleno += 4;
 }
 
-void AIV(DCPU *dcpu, word instruction, wordu aValue) {
+void AIV(DCPU* dcpu, word instruction, wordu aValue) {
     dcpu->cycleno += 1;
     if (dcpu->oninvalid) {
         dcpu->oninvalid(dcpu);
     }
 }
 
-word getA(DCPU *dcpu, word instruction) {
+word getA(DCPU* dcpu, word instruction) {
     int val = instruction >> 10;
     switch (val >> 3) {
         case 0:
@@ -423,7 +430,7 @@ word getA(DCPU *dcpu, word instruction) {
     }
 }
 
-word getB(DCPU *dcpu, word instruction) {
+word getB(DCPU* dcpu, word instruction) {
     int val = (instruction >> 5) & 0x1f;
     switch (val >> 3) {
         case 0:
@@ -458,7 +465,7 @@ word getB(DCPU *dcpu, word instruction) {
     }
 }
 
-void setA(DCPU *dcpu, word instruction, word value) {
+void setA(DCPU* dcpu, word instruction, word value) {
     int val = (instruction >> 5) & 0x1f;
     switch (val >> 3) {
         case 0:
@@ -493,7 +500,7 @@ void setA(DCPU *dcpu, word instruction, word value) {
     }
 }
 
-void setB(DCPU *dcpu, word instruction, word value) {
+void setB(DCPU* dcpu, word instruction, word value) {
     int val = (instruction >> 5) & 0x1f;
     switch (val >> 3) {
         case 0:
