@@ -1,7 +1,10 @@
 #ifndef EVENT_H_INCLUDED
 #define EVENT_H_INCLUDED
 
+#include "main.h"
+
 typedef int64_t eventtime;
+typedef struct Event Event;
 
 typedef struct Event {
     void (*ontrigger)(void*);
@@ -10,8 +13,12 @@ typedef struct Event {
     Event* nextevent;
 } Event;
 
-//Add a new event to an eventchain
-//Returns a pointer to the added event
+/* The first event in the eventchain is a dummy event.
+ * ontrigger points to NULL and time is the current time.
+ */
+
+//Add a new event to an eventchain, time units after the current time.
+//Returns a pointer to the added event, returns NULL if out of memory
 Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), void* data);
 
 //Remove an event from the eventchain and free it

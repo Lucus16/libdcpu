@@ -2,11 +2,8 @@
 1370123591 source:/home/lars/git/libdcpu/dcpu-lib/dcpu.c
 	"dcpu.h"
 
-1370124293 /home/lars/git/libdcpu/dcpu-lib/dcpu.h
-	<stdint.h>
-	<string.h>
-	<stdlib.h>
-	<stdio.h>
+1370129785 /home/lars/git/libdcpu/dcpu-lib/dcpu.h
+	"main.h"
 
 1370123732 source:/home/lars/git/libdcpu/dcpu-lib/genericclock.c
 	"dcpu.h"
@@ -14,5 +11,15 @@
 
 1370123217 /home/lars/git/libdcpu/dcpu-lib/genericclock.h
 
-1370124747 source:/home/lars/git/libdcpu/dcpu-lib/event.c
+1370129106 source:/home/lars/git/libdcpu/dcpu-lib/event.c
+	"event.h"
+
+1370129661 /home/lars/git/libdcpu/dcpu-lib/event.h
+	"main.h"
+
+1370129218 /home/lars/git/libdcpu/dcpu-lib/main.h
+	<stdint.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
 

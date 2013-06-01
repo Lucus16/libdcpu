@@ -1,6 +1,8 @@
 #ifndef DCPU_H_INCLUDED
 #define DCPU_H_INCLUDED
 
+#include "main.h"
+
 #define regA reg[0]
 #define regB reg[1]
 #define regC reg[2]
@@ -17,12 +19,6 @@
 #define push(dcpu, val) dcpu->mem[--dcpu->reg[8]] = val
 #define pop(dcpu) dcpu->mem[dcpu->reg[8]++]
 
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-typedef enum {false, true} bool;
 typedef uint16_t word;
 typedef union {uint16_t u; int16_t s;} wordu;
 typedef int64_t cycles_t;
