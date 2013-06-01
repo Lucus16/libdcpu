@@ -29,6 +29,15 @@ void destroyDCPU(DCPU* dcpu) {
     //NOTE: Does not free devices.
 }
 
+void destroyDevice(Device* device) {
+    if (device->destroyData != NULL) {
+        device->destroyData(device);
+    } else {
+        free(device->data);
+    }
+    free(device);
+}
+
 void rebootDCPU(DCPU* dcpu, bool clearmem) {
     dcpu->skipping = false;
     dcpu->queuing = false;
@@ -132,31 +141,55 @@ void addInterrupt(DCPU* dcpu, word value) {
     }
 }
 
-int addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data) {
+Event* addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data) {
     Event* event = malloc(sizeof(event));
     if (event == NULL) {
-        return 1; //error: out of memory
+        return NULL; //error: out of memory
     }
     event->ontrigger = ontrigger;
     event->data = data;
     event->time = time;
     time += dcpu->cycleno;
     Event* ne = dcpu->nextevent;
-    while (true) {
-        if (ne->nextevent) {
-            if (ne->nextevent->time >= time) {
-                event->nextevent = ne->nextevent;
+    if (ne == NULL) {
+        event->nextevent = NULL;
+        dcpu->nextevent = event;
+    } else {
+        while (true) {
+            if (ne->nextevent != NULL) {
+                if (ne->nextevent->time >= time) {
+                    event->nextevent = ne->nextevent;
+                    ne->nextevent = event;
+                    break;
+                }
+            } else {
+                event->nextevent = NULL;
                 ne->nextevent = event;
                 break;
             }
-        } else {
-            event->nextevent = NULL;
-            ne->nextevent = event;
-            break;
+            ne = ne->nextevent;
         }
-        ne = ne->nextevent;
     }
-    return 0;
+    return event;
+}
+
+int removeEvent(DCPU* dcpu, Event* event) {
+    Event* ne = dcpu->nextevent;
+    if (ne == NULL) {
+        return 1;
+    } else if (ne == event) {
+        dcpu->nextevent = ne->nextevent;
+        free(event);
+        return 0;
+    }
+    while (ne != NULL) {
+        if (ne->nextevent == event) {
+            ne->nextevent = event->nextevent;
+            free(event);
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void SET(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
@@ -384,7 +417,7 @@ void HWQ(DCPU* dcpu, word instruction, wordu aValue) {
 }
 
 void HWI(DCPU* dcpu, word instruction, wordu aValue) {
-    dcpu->devices[aValue.u].handleInterrupt(&dcpu->devices[aValue.u]);
+    dcpu->devices[aValue.u].interruptHandler(&dcpu->devices[aValue.u]);
     dcpu->cycleno += 4;
 }
 

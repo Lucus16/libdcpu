@@ -1,1 +1,18 @@
 # depslib dependency file v1.0
+1370123591 source:/home/lars/git/libdcpu/dcpu-lib/dcpu.c
+	"dcpu.h"
+
+1370124293 /home/lars/git/libdcpu/dcpu-lib/dcpu.h
+	<stdint.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+
+1370123732 source:/home/lars/git/libdcpu/dcpu-lib/genericclock.c
+	"dcpu.h"
+	"genericclock.h"
+
+1370123217 /home/lars/git/libdcpu/dcpu-lib/genericclock.h
+
+1370124747 source:/home/lars/git/libdcpu/dcpu-lib/event.c
+

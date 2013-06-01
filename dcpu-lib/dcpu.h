@@ -63,8 +63,9 @@ typedef struct Device {
     DCPU* dcpu;
     Super super;
     void* data;
-    void (*handleInterrupt)(Device*);
+    void (*interruptHandler)(Device*);
     void (*reset)(Device*);
+    void (*destroyData)(Device*);
 } Device;
 
 DCPU* newDCPU();
@@ -73,7 +74,9 @@ void rebootDCPU(DCPU* dcpu, bool clearmem);
 int flashDCPU(DCPU* dcpu, const char* filename);
 int docycles(DCPU* dcpu, int cyclestodo);
 void addInterrupt(DCPU* dcpu, word value);
-int addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data);
+Event* addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data);
+int removeEvent(DCPU* dcpu, Event* event);
+void destroyDevice(Device* device);
 
 word getA(DCPU* dcpu, word instruction);
 word getB(DCPU* dcpu, word instruction);
