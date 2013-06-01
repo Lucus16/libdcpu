@@ -1,0 +1,14 @@
+Event types:
+Breakpoint - time - Stops dcpu when time is reached and call dcpu.onbreak()
+HWEvent - time, device - Tells the device to handle an event
+
+No hardware ticks, hardware keeps track of time by use of events.
+
+typedef struct event {
+    enum {breakpoint, device, } type;
+    void *data;
+    int time;
+    struct event *nextevent;
+} event;
+
+Event ha
