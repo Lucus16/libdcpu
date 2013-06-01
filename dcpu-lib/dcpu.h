@@ -25,7 +25,7 @@
 typedef enum {false, true} bool;
 typedef uint16_t word;
 typedef union {uint16_t u; int16_t s;} wordu;
-typedef int64_t cyclecount;
+typedef int64_t cycles_t;
 typedef struct {int ID; int version; int manufacturer;} Super;
 
 typedef struct DCPU DCPU;
@@ -69,10 +69,10 @@ typedef struct Device {
 DCPU *newDCPU();
 void destroyDCPU(DCPU *dcpu);
 void rebootDCPU(DCPU *dcpu, bool clearmem);
-void flashDCPU(DCPU* dcpu, const char* filename);
-void docycles(DCPU *dcpu, int cyclestodo);
+int flashDCPU(DCPU* dcpu, const char* filename);
+int docycles(DCPU *dcpu, int cyclestodo);
 void addInterrupt(DCPU *dcpu, word value);
-void addEvent(DCPU *dcpu, int time, void (*ontrigger)(DCPU*, void*), void *data);
+int addEvent(DCPU *dcpu, int time, void (*ontrigger)(DCPU*, void*), void *data);
 
 word getA(DCPU *dcpu, word instruction);
 word getB(DCPU *dcpu, word instruction);

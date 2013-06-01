@@ -42,15 +42,26 @@ void rebootDCPU(DCPU* dcpu, bool clearmem) {
     memset(dcpu->reg, 0, 24);
 }
 
-void flashDCPU(DCPU* dcpu, const char* filename) {
-    FILE* file = fopen(filename, "r");
-    int bytesRead = fread(dcpu->mem, 2, 65536, file);
-    memset(dcpu->mem + bytesRead / 2, 0, 131072 - (bytesRead & 0xfffe)); //TODO: Check if endianness is correct
+int flashDCPU(DCPU* dcpu, const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        return 1;
+    }
+    int i, a, b;
+    for (i = 0; i < 65536; i++) {
+        a = fgetc(file);
+        if (a == EOF) { break; }
+        b = fgetc(file);
+        if (b == EOF) { break; }
+        dcpu->mem[i] = a << 8 | b;
+    }
+    memset(dcpu->mem + i, 0, 131072 - i);
     fclose(file);
+    return 0;
 }
 
-//TODO: Make it return the number of cycles actually executed
-void docycles(DCPU* dcpu, int cyclestodo) {
+//Returns the number of cycles executed
+int docycles(DCPU* dcpu, int cyclestodo) {
     static void (*basicFunctions[32])(DCPU*, word, wordu, wordu) = {
         INV, SET, ADD, SUB, MUL, MLI, DIV, DVI,
         MOD, MDI, AND, BOR, XOR, SHR, ASR, SHL,
@@ -64,7 +75,7 @@ void docycles(DCPU* dcpu, int cyclestodo) {
         AIV, AIV, AIV, AIV, AIV, AIV, AIV, AIV
     };
 
-    if (!dcpu->running && cyclestodo != -1) { return; }
+    if (!dcpu->running && cyclestodo != -1) { return 0; }
     if (cyclestodo == -1) { cyclestodo = 1; }
     int targetcycles = dcpu->cycleno + cyclestodo;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
@@ -93,12 +104,24 @@ void docycles(DCPU* dcpu, int cyclestodo) {
             ne = dcpu->nextevent;
         }
         word instruction = dcpu->mem[dcpu->regPC++];
-        if (instruction & 0x1f) {
-            (*basicFunctions[instruction & 0x1f])(dcpu, instruction, (wordu)getA(dcpu, instruction), (wordu)getB(dcpu, instruction));
+        int opcode = instruction & 0x1f;
+        wordu aValue = (wordu)getA(dcpu, instruction);
+        wordu bValue;
+        if (opcode != 0) {
+            bValue = (wordu)getB(dcpu, instruction);
+        }
+        if (dcpu->skipping) {
+            dcpu->cycleno++;
+            dcpu->skipping = (opcode > 0xf && opcode < 0x18);
         } else {
-            (*advancedFunctions[(instruction >> 5) & 0x1f])(dcpu, instruction, (wordu)getA(dcpu, instruction));
+            if (opcode != 0) {
+                (*basicFunctions[instruction & 0x1f])(dcpu, instruction, aValue, bValue);
+            } else {
+                (*advancedFunctions[(instruction >> 5) & 0x1f])(dcpu, instruction, aValue);
+            }
         }
     }
+    return dcpu->cycleno - (targetcycles - cyclestodo);
 }
 
 void addInterrupt(DCPU *dcpu, word value) {
@@ -109,15 +132,31 @@ void addInterrupt(DCPU *dcpu, word value) {
     }
 }
 
-void addEvent(DCPU *dcpu, int time, void (*ontrigger)(DCPU*, void*), void *data) {
+int addEvent(DCPU *dcpu, int time, void (*ontrigger)(DCPU*, void*), void *data) {
     Event* event = malloc(sizeof(event));
+    if (event == NULL) {
+        return 1; //error: out of memory
+    }
+    event->ontrigger = ontrigger;
+    event->data = data;
+    event->time = time;
     time += dcpu->cycleno;
-    Event *ne = dcpu->nextevent;
-    while (ne) {
-        if (ne->nextevent->time >= time) {
+    Event* ne = dcpu->nextevent;
+    while (true) {
+        if (ne->nextevent) {
+            if (ne->nextevent->time >= time) {
+                event->nextevent = ne->nextevent;
+                ne->nextevent = event;
+                break;
+            }
+        } else {
+            event->nextevent = NULL;
+            ne->nextevent = event;
+            break;
         }
         ne = ne->nextevent;
     }
+    return 0;
 }
 
 void SET(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
@@ -165,7 +204,7 @@ void DVI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
         setB(dcpu, instruction, 0);
         dcpu->regEX = 0;
     } else {
-        setB(dcpu, instruction, bValue.s / aValue.s); //TODO: Check if it rounds towards 0
+        setB(dcpu, instruction, bValue.s / aValue.s);
         dcpu->regEX = (bValue.s << 16) / aValue.s;
     }
     dcpu->cycleno += 3;
@@ -184,7 +223,7 @@ void MDI(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
     if (aValue.s == 0) {
         setB(dcpu, instruction, 0);
     } else {
-        setB(dcpu, instruction, bValue.s % aValue.s); //TODO: Check if MDI -7, 16 == -7
+        setB(dcpu, instruction, bValue.s % aValue.s);
     }
     dcpu->cycleno += 3;
 }
@@ -210,7 +249,7 @@ void SHR(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
 }
 
 void ASR(DCPU *dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.s >> aValue.u); //TODO: Check if this matches spec
+    setB(dcpu, instruction, bValue.s >> aValue.u);
     dcpu->cycleno += 1;
 }
 
