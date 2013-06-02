@@ -72,12 +72,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         IFB, IFC, IFE, IFN, IFG, IFA, IFL, IFU,
         INV, INV, ADX, SBX, INV, INV, STI, STD
     };
-    static void (*advancedFunctions[32])(DCPU*, word, wordu) = {
-        AIV, JSR, AIV, AIV, AIV, AIV, AIV, AIV,
-        INT, IAG, IAS, RFI, IAQ, AIV, AIV, AIV,
-        HWN, HWQ, HWI, AIV, AIV, AIV, AIV, AIV,
-        AIV, AIV, AIV, AIV, AIV, AIV, AIV, AIV
-    };
     static int valueLengths[64] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         1,1,1,1,1,1,1,1,0,0,1,0,0,0,1,1,
@@ -234,6 +228,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                     aValue.u = arga - 33;
                     break;
             }
+
             if (opcode != 0) {
                 switch (argb) {
                     case 0:
@@ -344,9 +339,63 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         bValue.u = dcpu->mem[dcpu->regPC++];
                         break;
                 }
+
                 (*basicFunctions[opcode])(dcpu, instruction, aValue, bValue); //TODO: Expand this
             } else {
-                (*advancedFunctions[argb])(dcpu, instruction, aValue); //TODO: Expand this
+                switch (argb) {
+                    case 1: //JSR
+                        push(dcpu, dcpu->regPC);
+                        dcpu->regPC = aValue.u;
+                        dcpu->cycleno += 3;
+                        break;
+                    case 8: //INT
+                        addInterrupt(dcpu, aValue.u);
+                        dcpu->cycleno += 4;
+                        break;
+                    case 9: //IAG
+                        setA(dcpu, instruction, dcpu->regIA);
+                        dcpu->cycleno += 1;
+                        break;
+                    case 10: //IAS
+                        dcpu->regIA = aValue.u;
+                        dcpu->cycleno += 1;
+                        break;
+                    case 11: //RFI
+                        dcpu->queuing = false;
+                        dcpu->regA = pop(dcpu);
+                        dcpu->regPC = pop(dcpu);
+                        dcpu->cycleno += 3;
+                        break;
+                    case 12: //IAQ
+                        dcpu->queuing = aValue.u;
+                        dcpu->cycleno += 3;
+                        break;
+                    case 16: //HWN
+                        setA(dcpu, instruction, dcpu->deviceCount);
+                        dcpu->cycleno += 2;
+                        break;
+                    case 17: //HWQ
+                        if (aValue.u < dcpu->deviceCount) {
+                            Super* super = &dcpu->devices[aValue.u].super;
+                            dcpu->regA = super->ID & 0xffff;
+                            dcpu->regB = super->ID >> 16;
+                            dcpu->regC = super->version;
+                            dcpu->regX = super->manufacturer & 0xffff;
+                            dcpu->regY = super->manufacturer >> 16;
+                        }
+                        dcpu->cycleno += 4;
+                        break;
+                    case 18: //HWI
+                        dcpu->devices[aValue.u].interruptHandler(dcpu->devices + aValue.u);
+                        dcpu->cycleno += 4;
+                        break;
+                    default:
+                        dcpu->cycleno += 1;
+                        if (dcpu->oninvalid != NULL) {
+                            dcpu->oninvalid(dcpu);
+                        }
+                        break;
+                }
             }
         }
     }
