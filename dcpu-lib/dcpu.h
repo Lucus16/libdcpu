@@ -2,6 +2,7 @@
 #define DCPU_H_INCLUDED
 
 #include "main.h"
+#include "event.h"
 
 #define regA reg[0]
 #define regB reg[1]
@@ -36,7 +37,7 @@ typedef struct DCPU {
     bool onfire;
     bool running;
     int hertz;
-    int cycleno;
+    cycles_t cycleno;
     word interrupts[256];
     uint8_t firstInterrupt;
     int interruptCount;
@@ -45,15 +46,8 @@ typedef struct DCPU {
     void (*onbreak)(DCPU*);
     int deviceCount;
     Device* devices;
-    Event* nextevent;
+    Event* eventchain;
 } DCPU;
-
-typedef struct Event {
-    void (*ontrigger)(DCPU*, void*);
-    void* data;
-    int time;
-    Event* nextevent;
-} Event;
 
 typedef struct Device {
     DCPU* dcpu;
@@ -68,10 +62,8 @@ DCPU* newDCPU();
 void destroyDCPU(DCPU* dcpu);
 void rebootDCPU(DCPU* dcpu, bool clearmem);
 int flashDCPU(DCPU* dcpu, const char* filename);
-int docycles(DCPU* dcpu, int cyclestodo);
+int docycles(DCPU* dcpu, cycles_t cyclestodo);
 void addInterrupt(DCPU* dcpu, word value);
-Event* addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data);
-int removeEvent(DCPU* dcpu, Event* event);
 void destroyDevice(Device* device);
 
 word getA(DCPU* dcpu, word instruction);

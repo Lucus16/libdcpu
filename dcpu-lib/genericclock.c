@@ -4,7 +4,7 @@
 Device* newClock() {
     Device* dev = malloc(sizeof(Device));
     dev->data = malloc(sizeof(Clock));
-    dev->super.ID = 0x12d0b402;
+    dev->super.ID = 0x12d0b402ui;
     dev->interruptHandler = clockHandler;
     dev->reset = clockReset;
     dev->destroyData = NULL;
@@ -20,9 +20,10 @@ void clockHandler(Device* device) {
             prev = clock->cyclesPerTick;
             clock->cyclesPerTick = 100000ll * device->dcpu->regB / 60; //TODO: Check if this works on 32-bit computers
             if (prev == 0 && clock->cyclesPerTick != 0) {
-                clock->currentEvent = addEvent(device->dcpu, clock->cyclesPerTick, clockTick, device);
+                clock->currentEvent = addEvent(device->dcpu->eventchain, clock->cyclesPerTick, clockTick, device);
             } else if (prev != 0 && clock->cyclesPerTick == 0) {
-                removeEvent(device->dcpu, clock->currentEvent);
+                removeEvent(device->dcpu->eventchain, clock->currentEvent);
+                clock->currentEvent = NULL;
             }
             break;
         case 1:
@@ -35,11 +36,12 @@ void clockHandler(Device* device) {
     }
 }
 
-void clockTick(DCPU* dcpu, Device* device) {
+void clockTick(void* data) {
+    Device* device = data;
     Clock* clock = device->data;
     if (clock->cyclesPerTick != 0) {
         clock->ticksSinceLast++;
-        addEvent(device->dcpu, clock->cyclesPerTick, clockTick, device);
+        addEvent(device->dcpu->eventchain, clock->cyclesPerTick, clockTick, device);
         if (clock->interruptMessage != 0) {
             addInterrupt(device->dcpu, clock->interruptMessage);
         }
@@ -51,4 +53,6 @@ void clockReset(Device* device) {
     clock->cyclesPerTick = 0;
     clock->interruptMessage = 0;
     clock->ticksSinceLast = 0;
+    removeEvent(device->dcpu->eventchain, clock->currentEvent);
+    clock->currentEvent = NULL;
 }

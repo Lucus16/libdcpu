@@ -1,5 +1,17 @@
 #include "event.h"
 
+Event* newChain() {
+    Event* event = malloc(sizeof(event));
+    if (event == NULL) {
+        return NULL;
+    }
+    event->ontrigger = NULL;
+    event->data = NULL;
+    event->time = 0;
+    event->nextevent = NULL;
+    return event;
+}
+
 Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), void* data) {
     Event* event = malloc(sizeof(event));
     if (event == NULL) {
@@ -7,7 +19,7 @@ Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), voi
     }
     event->ontrigger = ontrigger;
     event->data = data;
-    event->time = time;
+    event->time = time + eventchain->time;
     Event* ne = eventchain;
     while (true) {
         if (ne->nextevent == NULL || ne->nextevent->time >= time) {
@@ -33,7 +45,7 @@ int removeEvent(Event* eventchain, Event* event) {
     return 1;
 }
 
-void destroyEvents(Event* eventchain) {
+void destroyChain(Event* eventchain) {
     Event* ne = eventchain;
     Event* del;
     while (ne != NULL) {
@@ -46,10 +58,14 @@ void destroyEvents(Event* eventchain) {
 int runEvents(Event* eventchain, eventtime time) {
     Event* ne = eventchain;
     Event* del;
+    int total = 0;
     while (ne->time <= time) {
-        ne->trigger(ne->data);
-        del = ne
+        total++;
+        ne->ontrigger(ne->data);
+        del = ne;
         ne = ne->nextevent;
         free(del);
     }
+    eventchain->time = time;
+    return total;
 }

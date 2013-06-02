@@ -9,7 +9,7 @@ DCPU* newDCPU() {
     dcpu->oninvalid = NULL;
     dcpu->onbreak = NULL;
     dcpu->devices = NULL;
-    dcpu->nextevent = NULL;
+    dcpu->eventchain = newChain();
     dcpu->deviceCount = 0;
     dcpu->hertz = 100000;
     rebootDCPU(dcpu, true);
@@ -17,14 +17,7 @@ DCPU* newDCPU() {
 }
 
 void destroyDCPU(DCPU* dcpu) {
-    //free all events
-    Event* ne = dcpu->nextevent;
-    Event* del = NULL;
-    while (ne) {
-        del = ne;
-        ne = ne->nextevent;
-        free(del);
-    }
+    destroyChain(dcpu->eventchain);
     free(dcpu);
     //NOTE: Does not free devices.
 }
@@ -47,8 +40,10 @@ void rebootDCPU(DCPU* dcpu, bool clearmem) {
     dcpu->firstInterrupt = 0;
     dcpu->interruptCount = 0;
     if (clearmem) { memset(dcpu->mem, 0, sizeof(dcpu->mem)); }
-    memset(dcpu->interrupts, 0, 512);
-    memset(dcpu->reg, 0, 24);
+    memset(dcpu->interrupts, 0, sizeof(dcpu->interrupts));
+    memset(dcpu->reg, 0, sizeof(dcpu->reg));
+    destroyChain(dcpu->eventchain);
+    dcpu->eventchain = newChain();
 }
 
 int flashDCPU(DCPU* dcpu, const char* filename) {
@@ -70,7 +65,7 @@ int flashDCPU(DCPU* dcpu, const char* filename) {
 }
 
 //Returns the number of cycles executed
-int docycles(DCPU* dcpu, int cyclestodo) {
+int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     static void (*basicFunctions[32])(DCPU*, word, wordu, wordu) = {
         INV, SET, ADD, SUB, MUL, MLI, DIV, DVI,
         MOD, MDI, AND, BOR, XOR, SHR, ASR, SHL,
@@ -86,7 +81,7 @@ int docycles(DCPU* dcpu, int cyclestodo) {
 
     if (!dcpu->running && cyclestodo != -1) { return 0; }
     if (cyclestodo == -1) { cyclestodo = 1; }
-    int targetcycles = dcpu->cycleno + cyclestodo;
+    cycles_t targetcycles = dcpu->cycleno + cyclestodo;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
         if (dcpu->onfire && dcpu->onfirefn) {
             dcpu->onfirefn(dcpu);
@@ -101,17 +96,7 @@ int docycles(DCPU* dcpu, int cyclestodo) {
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
         }
-        Event* ne = dcpu->nextevent;
-        while (ne) {
-            if (ne->time <= dcpu->cycleno) {
-                ne->ontrigger(dcpu, ne->data);
-                dcpu->nextevent = ne->nextevent;
-                free(ne);
-            } else {
-                break;
-            }
-            ne = dcpu->nextevent;
-        }
+        runEvents(dcpu->eventchain, dcpu->cycleno);
         word instruction = dcpu->mem[dcpu->regPC++];
         int opcode = instruction & 0x1f;
         wordu aValue = (wordu)getA(dcpu, instruction);
@@ -139,57 +124,6 @@ void addInterrupt(DCPU* dcpu, word value) {
     if (dcpu->interruptCount > 256) {
         dcpu->onfire = true;
     }
-}
-
-Event* addEvent(DCPU* dcpu, int time, void (*ontrigger)(DCPU*, void*), void* data) {
-    Event* event = malloc(sizeof(event));
-    if (event == NULL) {
-        return NULL; //error: out of memory
-    }
-    event->ontrigger = ontrigger;
-    event->data = data;
-    event->time = time;
-    time += dcpu->cycleno;
-    Event* ne = dcpu->nextevent;
-    if (ne == NULL) {
-        event->nextevent = NULL;
-        dcpu->nextevent = event;
-    } else {
-        while (true) {
-            if (ne->nextevent != NULL) {
-                if (ne->nextevent->time >= time) {
-                    event->nextevent = ne->nextevent;
-                    ne->nextevent = event;
-                    break;
-                }
-            } else {
-                event->nextevent = NULL;
-                ne->nextevent = event;
-                break;
-            }
-            ne = ne->nextevent;
-        }
-    }
-    return event;
-}
-
-int removeEvent(DCPU* dcpu, Event* event) {
-    Event* ne = dcpu->nextevent;
-    if (ne == NULL) {
-        return 1;
-    } else if (ne == event) {
-        dcpu->nextevent = ne->nextevent;
-        free(event);
-        return 0;
-    }
-    while (ne != NULL) {
-        if (ne->nextevent == event) {
-            ne->nextevent = event->nextevent;
-            free(event);
-            return 0;
-        }
-    }
-    return 1;
 }
 
 void SET(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {

@@ -17,6 +17,10 @@ typedef struct Event {
  * ontrigger points to NULL and time is the current time.
  */
 
+//Create a new eventchain
+//Returns a pointer to the new eventchain
+Event* newChain();
+
 //Add a new event to an eventchain, time units after the current time.
 //Returns a pointer to the added event, returns NULL if out of memory
 Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), void* data);
@@ -26,7 +30,7 @@ Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), voi
 int removeEvent(Event* eventchain, Event* event);
 
 //Destroy an eventchain by freeing all events
-void destroyEvents(Event* eventchain);
+void destroyChain(Event* eventchain);
 
 //Run all events up to a certain time
 //Returns the number of events run

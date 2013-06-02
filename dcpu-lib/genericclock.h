@@ -10,7 +10,7 @@ typedef struct Clock {
 
 Device* newClock();
 void clockHandler(Device* device);
-void clockTick(DCPU* dcpu, Device* device);
+void clockTick(void* data);
 void clockReset(Device* device);
 
 #endif // GENERICCLOCK_H_INCLUDED
