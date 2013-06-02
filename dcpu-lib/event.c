@@ -1,7 +1,7 @@
 #include "event.h"
 
 Event* newChain() {
-    Event* event = malloc(sizeof(event));
+    Event* event = malloc(sizeof(Event));
     if (event == NULL) {
         return NULL;
     }
@@ -13,7 +13,7 @@ Event* newChain() {
 }
 
 Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), void* data) {
-    Event* event = malloc(sizeof(event));
+    Event* event = malloc(sizeof(Event));
     if (event == NULL) {
         return NULL; //error: out of memory
     }
@@ -56,16 +56,27 @@ void destroyChain(Event* eventchain) {
 }
 
 int runEvents(Event* eventchain, eventtime time) {
-    Event* ne = eventchain;
+    Event* ne = eventchain->nextevent;
     Event* del;
     int total = 0;
-    while (ne->time <= time) {
+    while (ne != NULL && ne->time <= time) {
         total++;
         ne->ontrigger(ne->data);
         del = ne;
         ne = ne->nextevent;
         free(del);
     }
+    eventchain->nextevent = ne;
     eventchain->time = time;
+    return total;
+}
+
+int countEvents(Event* eventchain) {
+    Event* ne = eventchain;
+    int total = 0;
+    while (ne != NULL) {
+        total++;
+        ne = ne->nextevent;
+    }
     return total;
 }

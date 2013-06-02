@@ -44,6 +44,15 @@
 		<Unit filename="doc.txt">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="event.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="event.h" />
+		<Unit filename="genericclock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="genericclock.h" />
+		<Unit filename="main.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

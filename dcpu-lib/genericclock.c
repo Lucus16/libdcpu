@@ -41,7 +41,7 @@ void clockTick(void* data) {
     Clock* clock = device->data;
     if (clock->cyclesPerTick != 0) {
         clock->ticksSinceLast++;
-        addEvent(device->dcpu->eventchain, clock->cyclesPerTick, clockTick, device);
+        clock->currentEvent = addEvent(device->dcpu->eventchain, clock->cyclesPerTick, clockTick, device);
         if (clock->interruptMessage != 0) {
             addInterrupt(device->dcpu, clock->interruptMessage);
         }
@@ -53,6 +53,8 @@ void clockReset(Device* device) {
     clock->cyclesPerTick = 0;
     clock->interruptMessage = 0;
     clock->ticksSinceLast = 0;
-    removeEvent(device->dcpu->eventchain, clock->currentEvent);
+    if (device->dcpu != NULL) {
+        removeEvent(device->dcpu->eventchain, clock->currentEvent);
+    }
     clock->currentEvent = NULL;
 }
