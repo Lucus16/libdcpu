@@ -122,94 +122,226 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->regPC += valueLengths[instruction >> 10] + valueLengths[(instruction >> 5) & 0x1f];
             dcpu->skipping = (opcode > 0xf && opcode < 0x18);
         } else {
-            switch (arga >> 3) {
+            switch (arga) {
                 case 0:
-                    aValue.u = dcpu->reg[arga & 0x7];
+                    aValue.u = dcpu->regA;
                     break;
                 case 1:
-                    aValue.u = dcpu->mem[dcpu->reg[arga & 0x7]];
+                    aValue.u = dcpu->regB;
                     break;
                 case 2:
-                    dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->reg[arga & 0x7] + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    aValue.u = dcpu->regC;
                     break;
                 case 3:
-                    switch (arga & 0x7) {
-                        case 0:
-                            aValue.u = dcpu->mem[dcpu->regSP++];
-                            break;
-                        case 1:
-                            aValue.u = dcpu->mem[dcpu->regSP];
-                            break;
-                        case 2:
-                            dcpu->cycleno++;
-                            aValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                            break;
-                        case 3:
-                            aValue.u = dcpu->regSP;
-                            break;
-                        case 4:
-                            aValue.u = dcpu->regPC;
-                            break;
-                        case 5:
-                            aValue.u = dcpu->regEX;
-                            break;
-                        case 6:
-                            dcpu->cycleno++;
-                            aValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
-                            break;
-                        case 7:
-                            dcpu->cycleno++;
-                            aValue.u = dcpu->mem[dcpu->regPC++];
-                            break;
-                    }
+                    aValue.u = dcpu->regX;
+                    break;
+                case 4:
+                    aValue.u = dcpu->regY;
+                    break;
+                case 5:
+                    aValue.u = dcpu->regZ;
+                    break;
+                case 6:
+                    aValue.u = dcpu->regI;
+                    break;
+                case 7:
+                    aValue.u = dcpu->regJ;
+                    break;
+                case 8:
+                    aValue.u = dcpu->mem[dcpu->regA];
+                    break;
+                case 9:
+                    aValue.u = dcpu->mem[dcpu->regB];
+                    break;
+                case 10:
+                    aValue.u = dcpu->mem[dcpu->regC];
+                    break;
+                case 11:
+                    aValue.u = dcpu->mem[dcpu->regX];
+                    break;
+                case 12:
+                    aValue.u = dcpu->mem[dcpu->regY];
+                    break;
+                case 13:
+                    aValue.u = dcpu->mem[dcpu->regZ];
+                    break;
+                case 14:
+                    aValue.u = dcpu->mem[dcpu->regI];
+                    break;
+                case 15:
+                    aValue.u = dcpu->mem[dcpu->regJ];
+                    break;
+                case 16:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 17:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 18:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 19:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 20:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 21:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 22:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 23:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 24:
+                    aValue.u = dcpu->mem[dcpu->regSP++];
+                    break;
+                case 25:
+                    aValue.u = dcpu->mem[dcpu->regSP];
+                    break;
+                case 26:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 27:
+                    aValue.u = dcpu->regSP;
+                    break;
+                case 28:
+                    aValue.u = dcpu->regPC;
+                    break;
+                case 29:
+                    aValue.u = dcpu->regEX;
+                    break;
+                case 30:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                    break;
+                case 31:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[dcpu->regPC++];
                     break;
                 default:
                     aValue.u = arga - 33;
                     break;
             }
             if (opcode != 0) {
-                switch (argb >> 3) {
+                switch (argb) {
                     case 0:
-                        bValue.u = dcpu->reg[argb & 0x7];
+                        bValue.u = dcpu->regA;
                         break;
                     case 1:
-                        bValue.u = dcpu->mem[dcpu->reg[argb & 0x7]];
+                        bValue.u = dcpu->regB;
                         break;
                     case 2:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->reg[argb & 0x7] + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        bValue.u = dcpu->regC;
                         break;
                     case 3:
-                        switch (argb & 0x7) {
-                            case 0:
-                                bValue.u = dcpu->mem[--dcpu->regSP];
-                                break;
-                            case 1:
-                                bValue.u = dcpu->mem[dcpu->regSP];
-                                break;
-                            case 2:
-                                dcpu->cycleno++;
-                                bValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                                break;
-                            case 3:
-                                bValue.u = dcpu->regSP;
-                                break;
-                            case 4:
-                                bValue.u = dcpu->regPC;
-                                break;
-                            case 5:
-                                bValue.u = dcpu->regEX;
-                                break;
-                            case 6:
-                                dcpu->cycleno++;
-                                bValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
-                                break;
-                            case 7:
-                                dcpu->cycleno++;
-                                bValue.u = dcpu->mem[dcpu->regPC++];
-                                break;
-                        }
+                        bValue.u = dcpu->regX;
+                        break;
+                    case 4:
+                        bValue.u = dcpu->regY;
+                        break;
+                    case 5:
+                        bValue.u = dcpu->regZ;
+                        break;
+                    case 6:
+                        bValue.u = dcpu->regI;
+                        break;
+                    case 7:
+                        bValue.u = dcpu->regJ;
+                        break;
+                    case 8:
+                        bValue.u = dcpu->mem[dcpu->regA];
+                        break;
+                    case 9:
+                        bValue.u = dcpu->mem[dcpu->regB];
+                        break;
+                    case 10:
+                        bValue.u = dcpu->mem[dcpu->regC];
+                        break;
+                    case 11:
+                        bValue.u = dcpu->mem[dcpu->regX];
+                        break;
+                    case 12:
+                        bValue.u = dcpu->mem[dcpu->regY];
+                        break;
+                    case 13:
+                        bValue.u = dcpu->mem[dcpu->regZ];
+                        break;
+                    case 14:
+                        bValue.u = dcpu->mem[dcpu->regI];
+                        break;
+                    case 15:
+                        bValue.u = dcpu->mem[dcpu->regJ];
+                        break;
+                    case 16:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 17:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 18:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 19:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 20:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 21:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 22:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 23:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 24:
+                        bValue.u = dcpu->mem[--dcpu->regSP];
+                        break;
+                    case 25:
+                        bValue.u = dcpu->mem[dcpu->regSP];
+                        break;
+                    case 26:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 27:
+                        bValue.u = dcpu->regSP;
+                        break;
+                    case 28:
+                        bValue.u = dcpu->regPC;
+                        break;
+                    case 29:
+                        bValue.u = dcpu->regEX;
+                        break;
+                    case 30:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                        break;
+                    case 31:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[dcpu->regPC++];
                         break;
                 }
                 (*basicFunctions[opcode])(dcpu, instruction, aValue, bValue); //TODO: Expand this
