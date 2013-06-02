@@ -1,0 +1,3 @@
+This is a project to implement a fast emulator for DCPU in C.
+It is not finished. Using it at this time can result in
+segfaults and/or memory leaks. Use at your own risk.
