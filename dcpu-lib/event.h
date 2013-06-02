@@ -36,4 +36,8 @@ void destroyChain(Event* eventchain);
 //Returns the number of events run
 int runEvents(Event* eventchain, eventtime time);
 
+//Count the number of events in the eventchain
+//Returns the number of events
+int countEvents(Event* eventchain);
+
 #endif // EVENT_H_INCLUDED

@@ -72,7 +72,7 @@ int runEvents(Event* eventchain, eventtime time) {
 }
 
 int countEvents(Event* eventchain) {
-    Event* ne = eventchain;
+    Event* ne = eventchain->nextevent;
     int total = 0;
     while (ne != NULL) {
         total++;
