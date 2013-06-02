@@ -78,15 +78,22 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         HWN, HWQ, HWI, AIV, AIV, AIV, AIV, AIV,
         AIV, AIV, AIV, AIV, AIV, AIV, AIV, AIV
     };
+    static int valueLengths[64] = {
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        1,1,1,1,1,1,1,1,0,0,1,0,0,0,1,1,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    };
 
     if (!dcpu->running && cyclestodo != -1) { return 0; }
     if (cyclestodo == -1) { cyclestodo = 1; }
     cycles_t targetcycles = dcpu->cycleno + cyclestodo;
+    Event* event = dcpu->eventchain->nextevent;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
         if (dcpu->onfire && dcpu->onfirefn) {
             dcpu->onfirefn(dcpu);
         }
-        if (!dcpu->queuing && dcpu->interruptCount && !dcpu->skipping) {
+        if (dcpu->interruptCount != 0 && !dcpu->queuing && !dcpu->skipping) {
             if (!dcpu->regIA) {
                 push(dcpu, dcpu->regPC);
                 push(dcpu, dcpu->regA);
@@ -96,22 +103,27 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
         }
-        runEvents(dcpu->eventchain, dcpu->cycleno);
+        while (event != NULL && event->time <= dcpu->cycleno) {
+            event->ontrigger(event->data);
+            Event* del = event;
+            event = event->nextevent;
+            free(del);
+            dcpu->eventchain->nextevent = event;
+        }
         word instruction = dcpu->mem[dcpu->regPC++];
         int opcode = instruction & 0x1f;
-        wordu aValue = (wordu)getA(dcpu, instruction);
-        wordu bValue;
-        if (opcode != 0) {
-            bValue = (wordu)getB(dcpu, instruction);
-        }
         if (dcpu->skipping) {
             dcpu->cycleno++;
+            dcpu->regPC += valueLengths[instruction >> 10] + valueLengths[(instruction >> 5) & 0x1f];
             dcpu->skipping = (opcode > 0xf && opcode < 0x18);
         } else {
+            wordu aValue = (wordu)getA(dcpu, instruction); //TODO: Expand this
+            wordu bValue;
             if (opcode != 0) {
-                (*basicFunctions[instruction & 0x1f])(dcpu, instruction, aValue, bValue);
+                bValue = (wordu)getB(dcpu, instruction); //TODO: Expand this
+                (*basicFunctions[instruction & 0x1f])(dcpu, instruction, aValue, bValue); //TODO: Expand this
             } else {
-                (*advancedFunctions[(instruction >> 5) & 0x1f])(dcpu, instruction, aValue);
+                (*advancedFunctions[(instruction >> 5) & 0x1f])(dcpu, instruction, aValue); //TODO: Expand this
             }
         }
     }
