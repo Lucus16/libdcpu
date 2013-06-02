@@ -89,6 +89,9 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     if (cyclestodo == -1) { cyclestodo = 1; }
     cycles_t targetcycles = dcpu->cycleno + cyclestodo;
     Event* event = dcpu->eventchain->nextevent;
+    wordu aValue, bValue;
+    word instruction;
+    int opcode, arga, argb;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
         if (dcpu->onfire && dcpu->onfirefn) {
             dcpu->onfirefn(dcpu);
@@ -110,20 +113,108 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             free(del);
             dcpu->eventchain->nextevent = event;
         }
-        word instruction = dcpu->mem[dcpu->regPC++];
-        int opcode = instruction & 0x1f;
+        instruction = dcpu->mem[dcpu->regPC++];
+        opcode = instruction & 0x1f;
+        arga = instruction >> 10;
+        argb = (instruction >> 5) & 0x1f;
         if (dcpu->skipping) {
             dcpu->cycleno++;
             dcpu->regPC += valueLengths[instruction >> 10] + valueLengths[(instruction >> 5) & 0x1f];
             dcpu->skipping = (opcode > 0xf && opcode < 0x18);
         } else {
-            wordu aValue = (wordu)getA(dcpu, instruction); //TODO: Expand this
-            wordu bValue;
+            switch (arga >> 3) {
+                case 0:
+                    aValue.u = dcpu->reg[arga & 0x7];
+                    break;
+                case 1:
+                    aValue.u = dcpu->mem[dcpu->reg[arga & 0x7]];
+                    break;
+                case 2:
+                    dcpu->cycleno++;
+                    aValue.u = dcpu->mem[(dcpu->reg[arga & 0x7] + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    break;
+                case 3:
+                    switch (arga & 0x7) {
+                        case 0:
+                            aValue.u = dcpu->mem[dcpu->regSP++];
+                            break;
+                        case 1:
+                            aValue.u = dcpu->mem[dcpu->regSP];
+                            break;
+                        case 2:
+                            dcpu->cycleno++;
+                            aValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                            break;
+                        case 3:
+                            aValue.u = dcpu->regSP;
+                            break;
+                        case 4:
+                            aValue.u = dcpu->regPC;
+                            break;
+                        case 5:
+                            aValue.u = dcpu->regEX;
+                            break;
+                        case 6:
+                            dcpu->cycleno++;
+                            aValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                            break;
+                        case 7:
+                            dcpu->cycleno++;
+                            aValue.u = dcpu->mem[dcpu->regPC++];
+                            break;
+                    }
+                    break;
+                default:
+                    aValue.u = arga - 33;
+                    break;
+            }
             if (opcode != 0) {
-                bValue = (wordu)getB(dcpu, instruction); //TODO: Expand this
-                (*basicFunctions[instruction & 0x1f])(dcpu, instruction, aValue, bValue); //TODO: Expand this
+                switch (argb >> 3) {
+                    case 0:
+                        bValue.u = dcpu->reg[argb & 0x7];
+                        break;
+                    case 1:
+                        bValue.u = dcpu->mem[dcpu->reg[argb & 0x7]];
+                        break;
+                    case 2:
+                        dcpu->cycleno++;
+                        bValue.u = dcpu->mem[(dcpu->reg[argb & 0x7] + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                        break;
+                    case 3:
+                        switch (argb & 0x7) {
+                            case 0:
+                                bValue.u = dcpu->mem[--dcpu->regSP];
+                                break;
+                            case 1:
+                                bValue.u = dcpu->mem[dcpu->regSP];
+                                break;
+                            case 2:
+                                dcpu->cycleno++;
+                                bValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                                break;
+                            case 3:
+                                bValue.u = dcpu->regSP;
+                                break;
+                            case 4:
+                                bValue.u = dcpu->regPC;
+                                break;
+                            case 5:
+                                bValue.u = dcpu->regEX;
+                                break;
+                            case 6:
+                                dcpu->cycleno++;
+                                bValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                                break;
+                            case 7:
+                                dcpu->cycleno++;
+                                bValue.u = dcpu->mem[dcpu->regPC++];
+                                break;
+                        }
+                        break;
+                }
+                (*basicFunctions[opcode])(dcpu, instruction, aValue, bValue); //TODO: Expand this
             } else {
-                (*advancedFunctions[(instruction >> 5) & 0x1f])(dcpu, instruction, aValue); //TODO: Expand this
+                (*advancedFunctions[argb])(dcpu, instruction, aValue); //TODO: Expand this
             }
         }
     }
