@@ -52,6 +52,10 @@
 			<Add option="-Wall" />
 			<Add option="-fPIC" />
 		</Compiler>
+		<Unit filename="collection.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="collection.h" />
 		<Unit filename="dcpu.c">
 			<Option compilerVar="CC" />
 		</Unit>
