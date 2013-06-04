@@ -18,5 +18,7 @@ DCPU* man_newDCPU(Manager* man);
 int man_freeDCPU(Manager* man, DCPU* dcpu);
 Device* man_newDevice(Manager* man);
 int man_freeDevice(Manager* man, Device* device);
+int man_connectDevice(Manager* man, DCPU* dcpu, Device* device);
+int man_disconnectDevice(Manager* man, DCPU* dcpu, Device* device);
 
 #endif // MANAGER_H_INCLUDED

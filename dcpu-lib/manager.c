@@ -83,13 +83,13 @@ int man_freeDevice(Manager* man, Device* device) {
     return 1;
 }
 
-void man_connectDevice(Manager* man, DCPU* dcpu, Device* device) {
+int man_connectDevice(Manager* man, DCPU* dcpu, Device* device) {
     if (dcpu->deviceCount == dcpu->deviceCapacity) {
         dcpu->deviceCapacity *= 2;
         Device** tmp = realloc(dcpu->devices, dcpu->deviceCapacity * sizeof(void*));
         if (tmp == NULL) {
             dcpu->deviceCapacity /= 2;
-            return NULL;
+            return 1;
         }
         dcpu->devices = tmp;
     }
@@ -98,6 +98,7 @@ void man_connectDevice(Manager* man, DCPU* dcpu, Device* device) {
     }
     dcpu->devices[dcpu->deviceCount++] = device;
     device->dcpu = dcpu;
+    return 0;
 }
 
 int man_disconnectDevice(Manager* man, DCPU* dcpu, Device* device) {

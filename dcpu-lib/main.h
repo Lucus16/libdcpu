@@ -6,6 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef enum {false, true} bool;
+typedef enum {false=0, true=1} bool;
 
 #endif // MAIN_H_INCLUDED

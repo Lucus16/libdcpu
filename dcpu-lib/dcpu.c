@@ -104,6 +104,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
         }
+        event = dcpu->eventchain->nextevent;
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
             del = event;

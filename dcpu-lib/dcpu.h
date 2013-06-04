@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "event.h"
+#include "collection.h"
 
 #define regA reg[0]
 #define regB reg[1]
