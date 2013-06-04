@@ -2,15 +2,14 @@
 
 DCPU* newDCPU() {
     DCPU* dcpu = malloc(sizeof(DCPU));
-    if (dcpu == NULL) {
-        return NULL;
-    }
+    if (dcpu == NULL) { return NULL; }
     dcpu->onfirefn = NULL;
     dcpu->oninvalid = NULL;
     dcpu->onbreak = NULL;
-    dcpu->devices = NULL;
+    dcpu->devices = malloc(16 * sizeof(void*));
     dcpu->eventchain = newChain();
     dcpu->deviceCount = 0;
+    dcpu->deviceCapacity = 16;
     dcpu->hertz = 100000;
     rebootDCPU(dcpu, true);
     return dcpu;
@@ -18,8 +17,9 @@ DCPU* newDCPU() {
 
 void destroyDCPU(DCPU* dcpu) {
     destroyChain(dcpu->eventchain);
+    free(dcpu->devices);
     free(dcpu);
-    //NOTE: Does not free devices.
+    //NOTE: Does not free the devices themselves.
 }
 
 void destroyDevice(Device* device) {
@@ -66,26 +66,30 @@ int flashDCPU(DCPU* dcpu, const char* filename) {
 
 //Returns the number of cycles executed
 int docycles(DCPU* dcpu, cycles_t cyclestodo) {
-    static void (*basicFunctions[32])(DCPU*, word, wordu, wordu) = {
-        INV, SET, ADD, SUB, MUL, MLI, DIV, DVI,
-        MOD, MDI, AND, BOR, XOR, SHR, ASR, SHL,
-        IFB, IFC, IFE, IFN, IFG, IFA, IFL, IFU,
-        INV, INV, ADX, SBX, INV, INV, STI, STD
-    };
     static int valueLengths[64] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         1,1,1,1,1,1,1,1,0,0,1,0,0,0,1,1,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
+    static int validBasic[32] = {
+        0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,0,0,1,1,0,0,1,1
+    };
+    static int validAdvanced[32] = {
+        0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,
+        1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+    };
 
     if (!dcpu->running && cyclestodo != -1) { return 0; }
     if (cyclestodo == -1) { cyclestodo = 1; }
     cycles_t targetcycles = dcpu->cycleno + cyclestodo;
     Event* event = dcpu->eventchain->nextevent;
+    Event* del;
+    Super* super;
     wordu aValue, bValue;
     word instruction;
-    int opcode, arga, argb;
+    int opcode, arga, argb, tmp;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
         if (dcpu->onfire && dcpu->onfirefn) {
             dcpu->onfirefn(dcpu);
@@ -102,7 +106,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         }
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
-            Event* del = event;
+            del = event;
             event = event->nextevent;
             free(del);
             dcpu->eventchain->nextevent = event;
@@ -113,9 +117,9 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         argb = (instruction >> 5) & 0x1f;
         if (dcpu->skipping) {
             dcpu->cycleno++;
-            dcpu->regPC += valueLengths[instruction >> 10] + valueLengths[(instruction >> 5) & 0x1f];
+            dcpu->regPC += valueLengths[arga] + valueLengths[argb];
             dcpu->skipping = (opcode > 0xf && opcode < 0x18);
-        } else {
+        } else if (validBasic[opcode] || (opcode == 0 && validAdvanced[argb])) {
             switch (arga) {
                 case 0:
                     aValue.u = dcpu->regA;
@@ -340,7 +344,152 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         break;
                 }
 
-                (*basicFunctions[opcode])(dcpu, instruction, aValue, bValue); //TODO: Expand this
+                switch (opcode) {
+                    case 1: //SET
+                        setB(dcpu, instruction, aValue.u);
+                        dcpu->cycleno += 1;
+                        break;
+                    case 2: //ADD
+                        setB(dcpu, instruction, bValue.u + aValue.u);
+                        dcpu->regEX = bValue.u + aValue.u > 0xffff ? 1 : 0;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 3: //SUB
+                        setB(dcpu, instruction, bValue.u - aValue.u);
+                        dcpu->regEX = bValue.u - aValue.u < 0 ? -1 : 0;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 4: //MUL
+                        setB(dcpu, instruction, bValue.u * aValue.u);
+                        dcpu->regEX = (bValue.u * aValue.u) >> 16;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 5: //MLI
+                        setB(dcpu, instruction, bValue.s * aValue.s);
+                        dcpu->regEX = (bValue.s * aValue.s) >> 16;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 6: //DIV
+                        if (aValue.u == 0) {
+                            setB(dcpu, instruction, 0);
+                            dcpu->regEX = 0;
+                        } else {
+                            setB(dcpu, instruction, bValue.u / aValue.u);
+                            dcpu->regEX = (bValue.u << 16) / aValue.u;
+                        }
+                        dcpu->cycleno += 3;
+                        break;
+                    case 7: //DVI
+                        if (aValue.s == 0) {
+                            setB(dcpu, instruction, 0);
+                            dcpu->regEX = 0;
+                        } else {
+                            setB(dcpu, instruction, bValue.s / aValue.s);
+                            dcpu->regEX = (bValue.s << 16) / aValue.s;
+                        }
+                        dcpu->cycleno += 3;
+                        break;
+                    case 8: //MOD
+                        if (aValue.u == 0) {
+                            setB(dcpu, instruction, 0);
+                        } else {
+                            setB(dcpu, instruction, bValue.u % aValue.u);
+                        }
+                        dcpu->cycleno += 3;
+                        break;
+                    case 9: //MDI
+                        if (aValue.s == 0) {
+                            setB(dcpu, instruction, 0);
+                        } else {
+                            setB(dcpu, instruction, bValue.s % aValue.s);
+                        }
+                        dcpu->cycleno += 3;
+                        break;
+                    case 10: //AND
+                        setB(dcpu, instruction, bValue.u & aValue.u);
+                        dcpu->cycleno += 1;
+                        break;
+                    case 11: //BOR
+                        setB(dcpu, instruction, bValue.u | aValue.u);
+                        dcpu->cycleno += 1;
+                        break;
+                    case 12: //XOR
+                        setB(dcpu, instruction, bValue.u ^ aValue.u);
+                        dcpu->cycleno += 1;
+                        break;
+                    case 13: //SHR
+                        setB(dcpu, instruction, bValue.u >> aValue.u);
+                        dcpu->regEX = ((int)bValue.u << 16) >> aValue.u;
+                        dcpu->cycleno += 1;
+                        break;
+                    case 14: //ASR
+                        setB(dcpu, instruction, bValue.s >> aValue.u);
+                        dcpu->regEX = ((int)bValue.s << 16) >> aValue.u;
+                        dcpu->cycleno += 1;
+                        break;
+                    case 15: //SHL
+                        setB(dcpu, instruction, bValue.u << aValue.u);
+                        dcpu->regEX = ((int)bValue.u << aValue.u) >> 16;
+                        dcpu->cycleno += 1;
+                        break;
+                    case 16: //IFB
+                        dcpu->skipping = (bValue.u & aValue.u) == 0;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 17: //IFC
+                        dcpu->skipping = (bValue.u & aValue.u) != 0;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 18: //IFE
+                        dcpu->skipping = bValue.u != aValue.u;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 19: //IFN
+                        dcpu->skipping = bValue.u == aValue.u;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 20: //IFG
+                        dcpu->skipping = bValue.u <= aValue.u;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 21: //IFA
+                        dcpu->skipping = bValue.s <= aValue.s;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 22: //IFL
+                        dcpu->skipping = bValue.u >= aValue.u;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 23: //IFU
+                        dcpu->skipping = bValue.s >= aValue.s;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 26: //ADX
+                        tmp = bValue.u + aValue.u + dcpu->regEX;
+                        setB(dcpu, instruction, tmp);
+                        dcpu->regEX = tmp > 0xffff ? 1 : 0;
+                        dcpu->cycleno += 3;
+                        break;
+                    case 27: //SBX
+                        tmp = bValue.u - aValue.u + dcpu->regEX;
+                        setB(dcpu, instruction, tmp);
+                        dcpu->regEX = tmp > 0xffff ? 1 : (tmp < 0 ? -1 : 0);
+                        dcpu->cycleno += 3;
+                        break;
+                    case 30: //STI
+                        setB(dcpu, instruction, aValue.u);
+                        dcpu->regI++;
+                        dcpu->regJ++;
+                        dcpu->cycleno += 2;
+                        break;
+                    case 31: //STD
+                        setB(dcpu, instruction, aValue.u);
+                        dcpu->regI--;
+                        dcpu->regJ--;
+                        dcpu->cycleno += 2;
+                        break;
+                }
+
             } else {
                 switch (argb) {
                     case 1: //JSR
@@ -376,7 +525,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         break;
                     case 17: //HWQ
                         if (aValue.u < dcpu->deviceCount) {
-                            Super* super = &dcpu->devices[aValue.u].super;
+                            super = &dcpu->devices[aValue.u]->super;
                             dcpu->regA = super->ID & 0xffff;
                             dcpu->regB = super->ID >> 16;
                             dcpu->regC = super->version;
@@ -386,16 +535,16 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         dcpu->cycleno += 4;
                         break;
                     case 18: //HWI
-                        dcpu->devices[aValue.u].interruptHandler(dcpu->devices + aValue.u);
+                        dcpu->devices[aValue.u]->interruptHandler(*(dcpu->devices + aValue.u));
                         dcpu->cycleno += 4;
                         break;
-                    default:
-                        dcpu->cycleno += 1;
-                        if (dcpu->oninvalid != NULL) {
-                            dcpu->oninvalid(dcpu);
-                        }
-                        break;
                 }
+
+            }
+        } else {
+            dcpu->cycleno++;
+            if (dcpu->oninvalid != NULL) {
+                dcpu->oninvalid(dcpu);
             }
         }
     }
@@ -407,312 +556,6 @@ void addInterrupt(DCPU* dcpu, word value) {
     dcpu->interrupts[(dcpu->firstInterrupt + ++dcpu->interruptCount) & 0xff] = value;
     if (dcpu->interruptCount > 256) {
         dcpu->onfire = true;
-    }
-}
-
-void SET(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void ADD(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u + aValue.u);
-    dcpu->regEX = bValue.u + aValue.u > 0xffff ? 1 : 0;
-    dcpu->cycleno += 2;
-}
-
-void SUB(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u - aValue.u);
-    dcpu->regEX = bValue.u - aValue.u < 0 ? -1 : 0;
-    dcpu->cycleno += 2;
-}
-
-void MUL(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u * aValue.u);
-    dcpu->regEX = (bValue.u * aValue.u) >> 16;
-    dcpu->cycleno += 2;
-}
-
-void MLI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.s * aValue.s);
-    dcpu->regEX = (bValue.s * aValue.s) >> 16;
-    dcpu->cycleno += 2;
-}
-
-void DIV(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    if (aValue.u == 0) {
-        setB(dcpu, instruction, 0);
-        dcpu->regEX = 0;
-    } else {
-        setB(dcpu, instruction, bValue.u / aValue.u);
-        dcpu->regEX = (bValue.u << 16) / aValue.u;
-    }
-    dcpu->cycleno += 3;
-}
-
-void DVI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    if (aValue.s == 0) {
-        setB(dcpu, instruction, 0);
-        dcpu->regEX = 0;
-    } else {
-        setB(dcpu, instruction, bValue.s / aValue.s);
-        dcpu->regEX = (bValue.s << 16) / aValue.s;
-    }
-    dcpu->cycleno += 3;
-}
-
-void MOD(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    if (aValue.u == 0) {
-        setB(dcpu, instruction, 0);
-    } else {
-        setB(dcpu, instruction, bValue.u % aValue.u);
-    }
-    dcpu->cycleno += 3;
-}
-
-void MDI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    if (aValue.s == 0) {
-        setB(dcpu, instruction, 0);
-    } else {
-        setB(dcpu, instruction, bValue.s % aValue.s);
-    }
-    dcpu->cycleno += 3;
-}
-
-void AND(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u & aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void BOR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u | aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void XOR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u ^ aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void SHR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u >> aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void ASR(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.s >> aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void SHL(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, bValue.u << aValue.u);
-    dcpu->cycleno += 1;
-}
-
-void IFB(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = !(bValue.u & aValue.u);
-    dcpu->cycleno += 2;
-}
-
-void IFC(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = bValue.u & aValue.u;
-    dcpu->cycleno += 2;
-}
-
-void IFE(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = !(bValue.u == aValue.u);
-    dcpu->cycleno += 2;
-}
-
-void IFN(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = bValue.u == aValue.u;
-    dcpu->cycleno += 2;
-}
-
-void IFG(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = bValue.u <= aValue.u;
-    dcpu->cycleno += 2;
-}
-
-void IFA(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = bValue.s <= aValue.s;
-    dcpu->cycleno += 2;
-}
-
-void IFL(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = bValue.u >= aValue.u;
-    dcpu->cycleno += 2;
-}
-
-void IFU(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->skipping = bValue.s >= aValue.s;
-    dcpu->cycleno += 2;
-}
-
-void ADX(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    int tmp = bValue.u + aValue.u + dcpu->regEX;
-    setB(dcpu, instruction, tmp);
-    dcpu->regEX = tmp > 0xffff ? 1 : 0;
-    dcpu->cycleno += 3;
-}
-
-void SBX(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    int tmp = bValue.u - aValue.u + dcpu->regEX;
-    setB(dcpu, instruction, tmp);
-    dcpu->regEX = tmp > 0xffff ? 1 : tmp < 0 ? -1 : 0;
-    dcpu->cycleno += 3;
-}
-
-void STI(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, aValue.u);
-    dcpu->regI++;
-    dcpu->regJ++;
-    dcpu->cycleno += 2;
-}
-
-void STD(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    setB(dcpu, instruction, aValue.u);
-    dcpu->regI--;
-    dcpu->regJ--;
-    dcpu->cycleno += 2;
-}
-
-void INV(DCPU* dcpu, word instruction, wordu aValue, wordu bValue) {
-    dcpu->cycleno += 1;
-    if (dcpu->oninvalid) {
-        dcpu->oninvalid(dcpu);
-    }
-}
-
-void JSR(DCPU* dcpu, word instruction, wordu aValue) {
-    push(dcpu, dcpu->regPC);
-    dcpu->regPC = aValue.u;
-    dcpu->cycleno += 3;
-}
-
-void INT(DCPU* dcpu, word instruction, wordu aValue) {
-    addInterrupt(dcpu, aValue.u);
-    dcpu->cycleno += 4;
-}
-
-void IAG(DCPU* dcpu, word instruction, wordu aValue) {
-    setA(dcpu, instruction, dcpu->regIA);
-    dcpu->cycleno += 1;
-}
-
-void IAS(DCPU* dcpu, word instruction, wordu aValue) {
-    dcpu->regIA = aValue.u;
-    dcpu->cycleno += 1;
-}
-
-void RFI(DCPU* dcpu, word instruction, wordu aValue) {
-    dcpu->queuing = false;
-    dcpu->regA = pop(dcpu);
-    dcpu->regPC = pop(dcpu);
-    dcpu->cycleno += 3;
-}
-
-void IAQ(DCPU* dcpu, word instruction, wordu aValue) {
-    dcpu->queuing = aValue.u;
-    dcpu->cycleno += 2;
-}
-
-void HWN(DCPU* dcpu, word instruction, wordu aValue) {
-    setA(dcpu, instruction, dcpu->deviceCount);
-    dcpu->cycleno += 2;
-}
-
-void HWQ(DCPU* dcpu, word instruction, wordu aValue) {
-    if (aValue.u < dcpu->deviceCount) {
-        Super* super = &dcpu->devices[aValue.u].super;
-        dcpu->regA = super->ID & 0xffff;
-        dcpu->regB = super->ID >> 16;
-        dcpu->regC = super->version;
-        dcpu->regX = super->manufacturer & 0xffff;
-        dcpu->regY = super->manufacturer >> 16;
-    }
-    dcpu->cycleno += 4;
-}
-
-void HWI(DCPU* dcpu, word instruction, wordu aValue) {
-    dcpu->devices[aValue.u].interruptHandler(&dcpu->devices[aValue.u]);
-    dcpu->cycleno += 4;
-}
-
-void AIV(DCPU* dcpu, word instruction, wordu aValue) {
-    dcpu->cycleno += 1;
-    if (dcpu->oninvalid) {
-        dcpu->oninvalid(dcpu);
-    }
-}
-
-word getA(DCPU* dcpu, word instruction) {
-    int val = instruction >> 10;
-    switch (val >> 3) {
-        case 0:
-            return dcpu->reg[val & 0x7];
-        case 1:
-            return dcpu->mem[dcpu->reg[val & 0x7]];
-        case 2:
-            dcpu->cycleno++;
-            return dcpu->mem[(dcpu->reg[val & 0x7] + dcpu->mem[dcpu->regPC++]) & 0xffff];
-        case 3:
-            switch (val & 0x7) {
-                case 0: //[SP++]
-                    return dcpu->mem[dcpu->regSP++];
-                case 1: //[SP]
-                    return dcpu->mem[dcpu->regSP];
-                case 2: //[SP + [PC++]]
-                    dcpu->cycleno++;
-                    return dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                case 3:
-                case 4:
-                case 5:
-                    return dcpu->reg[val - 19];
-                case 6:
-                    dcpu->cycleno++;
-                    return dcpu->mem[dcpu->mem[dcpu->regPC++]];
-                case 7:
-                    dcpu->cycleno++;
-                    return dcpu->mem[dcpu->regPC++];
-            }
-        default:
-            return val - 33;
-    }
-}
-
-word getB(DCPU* dcpu, word instruction) {
-    int val = (instruction >> 5) & 0x1f;
-    switch (val >> 3) {
-        case 0:
-            return dcpu->reg[val & 0x7];
-        case 1:
-            return dcpu->mem[dcpu->reg[val & 0x7]];
-        case 2:
-            dcpu->cycleno++;
-            return dcpu->mem[(dcpu->reg[val & 0x7] + dcpu->mem[dcpu->regPC++]) & 0xffff];
-        case 3:
-            switch (val & 0x7) {
-                case 0: //[--SP]
-                    return dcpu->mem[--dcpu->regSP];
-                case 1: //[SP]
-                    return dcpu->mem[dcpu->regSP];
-                case 2: //[SP + [PC++]]
-                    dcpu->cycleno++;
-                    return dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                case 3:
-                case 4:
-                case 5:
-                    return dcpu->reg[val - 19];
-                case 6:
-                    dcpu->cycleno++;
-                    return dcpu->mem[dcpu->mem[dcpu->regPC++]];
-                case 7:
-                    dcpu->cycleno++;
-                    return dcpu->mem[dcpu->regPC++];
-            }
-        default:
-            return 0;
     }
 }
 
