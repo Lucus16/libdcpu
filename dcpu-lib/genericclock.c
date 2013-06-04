@@ -1,15 +1,16 @@
 #include "dcpu.h"
+#include "manager.h"
 #include "genericclock.h"
 
-Device* newClock() {
-    Device* dev = malloc(sizeof(Device));
+int initClock(Device* dev) {
     dev->data = malloc(sizeof(Clock));
+    if (dev->data == NULL) { return 1; }
     dev->super.ID = 0x12d0b402ui;
     dev->interruptHandler = clockHandler;
     dev->reset = clockReset;
     dev->destroyData = NULL;
     clockReset(dev);
-    return dev;
+    return 0;
 }
 
 void clockHandler(Device* device) {
@@ -53,7 +54,7 @@ void clockReset(Device* device) {
     clock->cyclesPerTick = 0;
     clock->interruptMessage = 0;
     clock->ticksSinceLast = 0;
-    if (device->dcpu != NULL) {
+    if (device->dcpu != NULL && clock->currentEvent != NULL) {
         removeEvent(device->dcpu->eventchain, clock->currentEvent);
     }
     clock->currentEvent = NULL;

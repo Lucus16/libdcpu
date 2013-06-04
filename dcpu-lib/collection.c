@@ -29,13 +29,13 @@ int collectionAdd(Collection* col, void* element) {
     return 0;
 }
 
-bool collectionDel(Collection* col, void* element) {
+int collectionDel(Collection* col, void* element) {
     int i;
     for (i = 0; i < col->used; i++) {
         if (col->data[i] == element) {
             col->data[i] = col->data[--col->used];
-            return true;
+            return 0;
         }
     }
-    return false;
+    return 1;
 }

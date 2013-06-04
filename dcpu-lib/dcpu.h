@@ -45,9 +45,7 @@ typedef struct DCPU {
     void (*onfirefn)(DCPU*);
     void (*oninvalid)(DCPU*);
     void (*onbreak)(DCPU*);
-    Device** devices;
-    int deviceCount;
-    int deviceCapacity;
+    Collection devices;
     Event* eventchain;
 } DCPU;
 
@@ -64,6 +62,7 @@ DCPU* newDCPU();
 void destroyDCPU(DCPU* dcpu);
 void rebootDCPU(DCPU* dcpu, bool clearmem);
 int flashDCPU(DCPU* dcpu, const char* filename);
+int dumpMemory(DCPU* dcpu, const char* filename);
 int docycles(DCPU* dcpu, cycles_t cyclestodo);
 void addInterrupt(DCPU* dcpu, word value);
 void destroyDevice(Device* device);

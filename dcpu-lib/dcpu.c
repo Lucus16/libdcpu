@@ -6,10 +6,8 @@ DCPU* newDCPU() {
     dcpu->onfirefn = NULL;
     dcpu->oninvalid = NULL;
     dcpu->onbreak = NULL;
-    dcpu->devices = malloc(16 * sizeof(void*));
+    initCollection(&dcpu->devices, 16);
     dcpu->eventchain = newChain();
-    dcpu->deviceCount = 0;
-    dcpu->deviceCapacity = 16;
     dcpu->hertz = 100000;
     rebootDCPU(dcpu, true);
     return dcpu;
@@ -17,7 +15,7 @@ DCPU* newDCPU() {
 
 void destroyDCPU(DCPU* dcpu) {
     destroyChain(dcpu->eventchain);
-    free(dcpu->devices);
+    free(dcpu->devices.data);
     free(dcpu);
     //NOTE: Does not free the devices themselves.
 }
@@ -25,7 +23,7 @@ void destroyDCPU(DCPU* dcpu) {
 void destroyDevice(Device* device) {
     if (device->destroyData != NULL) {
         device->destroyData(device);
-    } else {
+    } else if (device->data != NULL) {
         free(device->data);
     }
     free(device);
@@ -60,6 +58,20 @@ int flashDCPU(DCPU* dcpu, const char* filename) {
         dcpu->mem[i] = a << 8 | b;
     }
     memset(dcpu->mem + i, 0, 131072 - i);
+    fclose(file);
+    return 0;
+}
+
+int dumpMemory(DCPU* dcpu, const char* filename) {
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        return 1;
+    }
+    int i;
+    for (i = 0; i < 65536; i++) {
+        fputc(dcpu->mem[i] >> 8, file);
+        fputc(dcpu->mem[i] & 0xff, file);
+    }
     fclose(file);
     return 0;
 }
@@ -521,12 +533,12 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         dcpu->cycleno += 3;
                         break;
                     case 16: //HWN
-                        setA(dcpu, instruction, dcpu->deviceCount);
+                        setA(dcpu, instruction, dcpu->devices.used);
                         dcpu->cycleno += 2;
                         break;
                     case 17: //HWQ
-                        if (aValue.u < dcpu->deviceCount) {
-                            super = &dcpu->devices[aValue.u]->super;
+                        if (aValue.u < dcpu->devices.used) {
+                            super = &((Device*)dcpu->devices.data[aValue.u])->super;
                             dcpu->regA = super->ID & 0xffff;
                             dcpu->regB = super->ID >> 16;
                             dcpu->regC = super->version;
@@ -536,7 +548,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         dcpu->cycleno += 4;
                         break;
                     case 18: //HWI
-                        dcpu->devices[aValue.u]->interruptHandler(*(dcpu->devices + aValue.u));
+                        ((Device*)dcpu->devices.data[aValue.u])->interruptHandler(*(dcpu->devices.data + aValue.u));
                         dcpu->cycleno += 4;
                         break;
                 }

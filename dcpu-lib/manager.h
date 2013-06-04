@@ -4,12 +4,8 @@
 typedef struct Manager Manager;
 
 typedef struct Manager {
-    DCPU** dcpus;
-    int dcpuCount;
-    int dcpuCapacity;
-    Device** devices;
-    int deviceCount;
-    int deviceCapacity;
+    Collection dcpus;
+    Collection devices;
 } Manager;
 
 Manager* newManager();
@@ -19,6 +15,8 @@ int man_freeDCPU(Manager* man, DCPU* dcpu);
 Device* man_newDevice(Manager* man);
 int man_freeDevice(Manager* man, Device* device);
 int man_connectDevice(Manager* man, DCPU* dcpu, Device* device);
-int man_disconnectDevice(Manager* man, DCPU* dcpu, Device* device);
+int man_disconnectDevice(Manager* man, Device* device);
+
+Device* man_newClock(Manager* man);
 
 #endif // MANAGER_H_INCLUDED

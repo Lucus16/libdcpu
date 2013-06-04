@@ -8,7 +8,7 @@ typedef struct Clock {
     Event* currentEvent;
 } Clock;
 
-Device* newClock();
+int initClock(Device* dev);
 void clockHandler(Device* device);
 void clockTick(void* data);
 void clockReset(Device* device);
