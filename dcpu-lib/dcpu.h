@@ -67,7 +67,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo);
 void addInterrupt(DCPU* dcpu, word value);
 void destroyDevice(Device* device);
 
-void setA(DCPU* dcpu, int arga, word value);
 void setB(DCPU* dcpu, int argb, word value);
 
 #endif // DCPU_H_INCLUDED

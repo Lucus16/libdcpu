@@ -96,12 +96,14 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     if (!dcpu->running && cyclestodo != -1) { return 0; }
     if (cyclestodo == -1) { cyclestodo = 1; }
     cycles_t targetcycles = dcpu->cycleno + cyclestodo;
-    Event* event = dcpu->eventchain->nextevent;
+    Event* event;
+    Event* eventchain = dcpu->eventchain;
     Event* del;
     Super* super;
     wordu aValue, bValue;
-    word instruction;
+    word instruction, setValue;
     int opcode, arga, argb, tmp;
+    bool doSet;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
         if (dcpu->onfire && dcpu->onfirefn) {
             dcpu->onfirefn(dcpu);
@@ -117,13 +119,13 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
         }
-        event = dcpu->eventchain->nextevent;
+        event = eventchain->nextevent;
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
             del = event;
             event = event->nextevent;
             free(del);
-            dcpu->eventchain->nextevent = event;
+            eventchain->nextevent = event;
         }
         instruction = dcpu->mem[dcpu->regPC++];
         opcode = instruction & 0x1f;
@@ -505,6 +507,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                 }
 
             } else {
+                doSet = false;
                 switch (argb) {
                     case 1: //JSR
                         push(dcpu, dcpu->regPC);
@@ -516,7 +519,8 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         dcpu->cycleno += 4;
                         break;
                     case 9: //IAG
-                        setA(dcpu, arga, dcpu->regIA);
+                        setValue = dcpu->regIA;
+                        doSet = true;
                         dcpu->cycleno += 1;
                         break;
                     case 10: //IAS
@@ -534,7 +538,8 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         dcpu->cycleno += 3;
                         break;
                     case 16: //HWN
-                        setA(dcpu, arga, dcpu->devices.used);
+                        setValue = dcpu->devices.used;
+                        doSet = true;
                         dcpu->cycleno += 2;
                         break;
                     case 17: //HWQ
@@ -554,6 +559,45 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                         break;
                 }
 
+                if (doSet) {
+                    switch (arga >> 3) {
+                        case 0:
+                            dcpu->reg[arga & 0x7] = setValue;
+                            break;
+                        case 1:
+                            dcpu->mem[dcpu->reg[arga & 0x7]] = setValue;
+                            break;
+                        case 2:
+                            dcpu->mem[(dcpu->reg[arga & 0x7] + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = setValue;
+                            break;
+                        case 3:
+                            switch (arga & 0x7) {
+                                case 0:
+                                    dcpu->mem[dcpu->regSP - 1] = setValue;
+                                    break;
+                                case 1:
+                                    dcpu->mem[dcpu->regSP] = setValue;
+                                    break;
+                                case 2:
+                                    dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = setValue;
+                                    break;
+                                case 3:
+                                    dcpu->regSP = setValue;
+                                    break;
+                                case 4:
+                                    dcpu->regPC = setValue;
+                                    break;
+                                case 5:
+                                    dcpu->regEX = setValue;
+                                    break;
+                                case 6:
+                                    dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = setValue;
+                                    break;
+                            }
+                    }
+
+                }
+
             }
         } else {
             dcpu->cycleno++;
@@ -569,44 +613,6 @@ void addInterrupt(DCPU* dcpu, word value) {
     dcpu->interrupts[(dcpu->firstInterrupt + ++dcpu->interruptCount) & 0xff] = value;
     if (dcpu->interruptCount > 256) {
         dcpu->onfire = true;
-    }
-}
-
-void setA(DCPU* dcpu, int arga, word value) {
-    switch (arga >> 3) {
-        case 0:
-            dcpu->reg[arga & 0x7] = value;
-            return;
-        case 1:
-            dcpu->mem[dcpu->reg[arga & 0x7]] = value;
-            return;
-        case 2:
-            dcpu->mem[(dcpu->reg[arga & 0x7] + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 3:
-            switch (arga & 0x7) {
-                case 0:
-                    dcpu->mem[dcpu->regSP - 1] = value;
-                    return;
-                case 1:
-                    dcpu->mem[dcpu->regSP] = value;
-                    return;
-                case 2:
-                    dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-                    return;
-                case 3:
-                    dcpu->regSP = value;
-                    return;
-                case 4:
-                    dcpu->regPC = value;
-                    return;
-                case 5:
-                    dcpu->regEX = value;
-                    return;
-                case 6:
-                    dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = value;
-                    return;
-            }
     }
 }
 
