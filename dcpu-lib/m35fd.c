@@ -99,6 +99,20 @@ int m35fdInsertFloppy(Device* device, Floppy* floppy) {
     return 0;
 }
 
+int m35fdEjectFloppy(Device* device) {
+    M35FD* m35fd = device->data;
+    if (m35fd->floppy == NULL) { return 1; }
+    if (m35fd->state == STATE_BUSY) {
+        m35fd->error = ERROR_EJECT;
+    }
+    m35fd->floppy = NULL;
+    m35fd->state = floppy->writeProtected ? STATE_READY_WP : STATE_READY;
+    if (m35fd->interruptMessage != 0) {
+        addInterrupt(device->dcpu, m35fd->interruptMessage);
+    }
+    return 0;
+}
+
 Floppy* newFloppy(bool writeProtected) {
     Floppy* floppy = malloc(sizeof(Floppy));
     floppy->filename = NULL;

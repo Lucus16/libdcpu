@@ -105,9 +105,9 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     int opcode, arga, argb, tmp;
     bool doSet;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
-        if (dcpu->onfire && dcpu->onfirefn) {
-            dcpu->onfirefn(dcpu);
-        }
+        //if (dcpu->onfire && dcpu->onfirefn) {
+        //    dcpu->onfirefn(dcpu);
+        //} //Disabled for speed, may be reenabled in a seperate docyclesonfire()
         if (dcpu->interruptCount != 0 && !dcpu->queuing && !dcpu->skipping) {
             if (dcpu->regIA != 0) {
                 push(dcpu, dcpu->regPC);
