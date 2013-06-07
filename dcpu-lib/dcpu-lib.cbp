@@ -52,6 +52,10 @@
 			<Add option="-Wall" />
 			<Add option="-fPIC" />
 		</Compiler>
+		<Unit filename="clock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="clock.h" />
 		<Unit filename="collection.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -67,10 +71,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="event.h" />
-		<Unit filename="genericclock.c">
+		<Unit filename="m35fd.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="genericclock.h" />
+		<Unit filename="m35fd.h" />
 		<Unit filename="main.h" />
 		<Unit filename="manager.c">
 			<Option compilerVar="CC" />

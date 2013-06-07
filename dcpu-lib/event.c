@@ -19,7 +19,7 @@ Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), voi
     }
     event->ontrigger = ontrigger;
     event->data = data;
-    event->time = time + eventchain->time;
+    event->time = time;
     Event* ne = eventchain;
     while (true) {
         if (ne->nextevent == NULL || ne->nextevent->time >= time) {
@@ -29,7 +29,6 @@ Event* addEvent(Event* eventchain, eventtime time, void (*ontrigger)(void*), voi
         }
         ne = ne->nextevent;
     }
-    return event;
 }
 
 int removeEvent(Event* eventchain, Event* event) {

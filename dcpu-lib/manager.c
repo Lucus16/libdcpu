@@ -1,6 +1,6 @@
 #include "dcpu.h"
 #include "manager.h"
-#include "genericclock.h"
+#include "clock.h"
 
 Manager* newManager() {
     Manager* man = malloc(sizeof(Manager));
@@ -17,8 +17,12 @@ void freeManager(Manager* man) {
     for (i = 0; i < man->devices.used; i++) {
         destroyDevice(man->devices.data[i]);
     }
+    for (i = 0; i < man->floppies.used; i++) {
+        freeFloppy(man->floppies.data[i]);
+    }
     free(man->dcpus.data);
     free(man->devices.data);
+    free(man->floppies.data);
     free(man);
 }
 
@@ -38,9 +42,40 @@ int man_freeDCPU(Manager* man, DCPU* dcpu) {
     return ret;
 }
 
+Floppy* man_newFloppy(Manager* man, const char* filename, bool writeProtected) {
+    Floppy* floppy = malloc(sizeof(Floppy));
+    if (floppy == NULL) { return NULL; }
+    if (collectionAdd(&man->floppies, floppy) != 0) {
+        free(floppy);
+        return NULL;
+    }
+    floppy->filename = filename;
+    floppy->writeProtected = writeProtected;
+    memset(floppy->data, 0, sizeof(floppy->data));
+    return floppy;
+}
+
+Floppy* man_loadFloppy(Manager* man, const char* filename, bool writeProtected) {
+    Floppy* floppy = malloc(sizeof(Floppy));
+    if (floppy == NULL) { return NULL; }
+    if (collectionAdd(&man->floppies, floppy) != 0 || flashFloppy(floppy, filename) != 0) {
+        free(floppy);
+        return NULL;
+    }
+    floppy->filename = filename;
+    floppy->writeProtected = writeProtected;
+    return floppy;
+}
+
+int man_saveFloppy(Manager* man, Floppy* floppy) {
+    if (floppy->filename == NULL) { return 2; }
+    return dumpFloppy(floppy, floppy->filename);
+}
+
 Device* man_newDevice(Manager* man) {
     Device* device = malloc(sizeof(Device));
     if (device == NULL) { return NULL; }
+    device->dcpu = NULL;
     if (collectionAdd(&man->devices, device) != 0) {
         destroyDevice(device);
         return NULL;
@@ -74,6 +109,15 @@ int man_disconnectDevice(Manager* man, Device* device) {
 Device* man_newClock(Manager* man) {
     Device* device = man_newDevice(man);
     if (device == NULL) { return NULL; }
+    device->dcpu = NULL;
     initClock(device);
+    return device;
+}
+
+Device* man_newM35FD(Manager* man) {
+    Device* device = man_newDevice(man);
+    if (device == NULL) { return NULL; }
+    device->dcpu = NULL;
+    initM35FD(device);
     return device;
 }

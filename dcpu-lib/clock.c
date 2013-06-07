@@ -1,6 +1,6 @@
 #include "dcpu.h"
 #include "manager.h"
-#include "genericclock.h"
+#include "clock.h"
 
 int initClock(Device* dev) {
     dev->data = malloc(sizeof(Clock));
@@ -42,7 +42,7 @@ void clockTick(void* data) {
     Clock* clock = device->data;
     if (clock->cyclesPerTick != 0) {
         clock->ticksSinceLast++;
-        clock->currentEvent = addEvent(device->dcpu->eventchain, clock->cyclesPerTick, clockTick, device);
+        clock->currentEvent = addEvent(device->dcpu->eventchain, clock->cyclesPerTick + device->dcpu->cycleno, clockTick, device);
         if (clock->interruptMessage != 0) {
             addInterrupt(device->dcpu, clock->interruptMessage);
         }

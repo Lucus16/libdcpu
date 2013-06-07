@@ -107,11 +107,12 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->onfirefn(dcpu);
         }
         if (dcpu->interruptCount != 0 && !dcpu->queuing && !dcpu->skipping) {
-            if (!dcpu->regIA) {
+            if (dcpu->regIA != 0) {
                 push(dcpu, dcpu->regPC);
                 push(dcpu, dcpu->regA);
                 dcpu->regPC = dcpu->regIA;
                 dcpu->regA = dcpu->interrupts[dcpu->firstInterrupt];
+                dcpu->queuing = true;
             }
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
@@ -565,7 +566,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
 }
 
 void addInterrupt(DCPU* dcpu, word value) {
-    dcpu->interruptCount++;
     dcpu->interrupts[(dcpu->firstInterrupt + ++dcpu->interruptCount) & 0xff] = value;
     if (dcpu->interruptCount > 256) {
         dcpu->onfire = true;
