@@ -61,13 +61,13 @@ typedef struct Device {
 DCPU* newDCPU();
 void destroyDCPU(DCPU* dcpu);
 void rebootDCPU(DCPU* dcpu, bool clearmem);
-int flashDCPU(DCPU* dcpu, const char* filename);
-int dumpMemory(DCPU* dcpu, const char* filename);
+int flashDCPU(DCPU* dcpu, char* filename);
+int dumpMemory(DCPU* dcpu, char* filename);
 int docycles(DCPU* dcpu, cycles_t cyclestodo);
 void addInterrupt(DCPU* dcpu, word value);
 void destroyDevice(Device* device);
 
-void setA(DCPU* dcpu, word instruction, word value);
-void setB(DCPU* dcpu, word instruction, word value);
+void setA(DCPU* dcpu, int arga, word value);
+void setB(DCPU* dcpu, int argb, word value);
 
 #endif // DCPU_H_INCLUDED
