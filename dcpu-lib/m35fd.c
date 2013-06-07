@@ -106,7 +106,7 @@ int m35fdEjectFloppy(Device* device) {
         m35fd->error = ERROR_EJECT;
     }
     m35fd->floppy = NULL;
-    m35fd->state = floppy->writeProtected ? STATE_READY_WP : STATE_READY;
+    m35fd->state = STATE_NO_MEDIA;
     if (m35fd->interruptMessage != 0) {
         addInterrupt(device->dcpu, m35fd->interruptMessage);
     }
