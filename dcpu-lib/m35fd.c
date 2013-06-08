@@ -20,10 +20,10 @@ void m35fdHandler(Device* dev) {
             dev->dcpu->regB = m35fd->state;
             dev->dcpu->regC = m35fd->error;
             m35fd->error = ERROR_NONE;
-            break;
+            return;
         case 1: //SET INTERRUPT
             m35fd->interruptMessage = dev->dcpu->regX;
-            break;
+            return;
         case 3: //WRITE SECTOR
             if (m35fd->state == STATE_READY_WP) {
                 m35fd->error = ERROR_PROTECTED;
@@ -47,7 +47,7 @@ void m35fdHandler(Device* dev) {
             m35fd->currentEvent = addEvent(dev->dcpu->eventchain, abs(m35fd->currentTrack - m35fd->targetSector / 18) * 240, m35fdSwitchTrack, dev);
             m35fd->state = STATE_BUSY;
             dev->dcpu->regB = 1;
-            break;
+            return;
     }
 }
 
