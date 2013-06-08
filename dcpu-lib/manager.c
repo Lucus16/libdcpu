@@ -6,6 +6,7 @@ Manager* newManager() {
     Manager* man = malloc(sizeof(Manager));
     initCollection(&man->dcpus, 4);
     initCollection(&man->devices, 16);
+    initCollection(&man->floppies, 4);
     return man;
 }
 

@@ -1,14 +1,18 @@
 #include "m35fd.h"
 
 int initM35FD(Device* dev) {
-    dev->data = malloc(sizeof(M35FD));
-    if (dev->data == NULL) { return 1; }
+    M35FD* m35fd = malloc(sizeof(M35FD));
+    if (m35fd == NULL) { return 1; }
+    dev->data = m35fd;
     dev->super.ID = 0x4fd524c5;
     dev->super.version = 0x000b;
     dev->super.manufacturer = 0x1eb37e91;
     dev->interruptHandler = m35fdHandler;
     dev->reset = m35fdReset;
     dev->destroyData = NULL;
+    dev->dcpu = NULL;
+    m35fd->currentEvent = NULL;
+    m35fd->floppy = NULL;
     m35fdReset(dev);
     return 0;
 }
@@ -133,8 +137,14 @@ int dumpFloppy(Floppy* floppy, const char* filename) {
     }
     int i;
     for (i = 0; i < 737280; i++) {
-        fputc(floppy->data[i] >> 8, file);
-        fputc(floppy->data[i] & 0xff, file);
+        if (fputc(floppy->data[i] >> 8, file) != 0) {
+            fclose(file);
+            return 2;
+        }
+        if (fputc(floppy->data[i] & 0xff, file) != 0) {
+            fclose(file);
+            return 2;
+        }
     }
     fclose(file);
     return 0;
