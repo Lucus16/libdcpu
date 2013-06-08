@@ -3,9 +3,9 @@
 int initM35FD(Device* dev) {
     dev->data = malloc(sizeof(M35FD));
     if (dev->data == NULL) { return 1; }
-    dev->super.ID = 0x4fd524c5ui;
+    dev->super.ID = 0x4fd524c5;
     dev->super.version = 0x000b;
-    dev->super.manufacturer = 0x1eb37e91ui;
+    dev->super.manufacturer = 0x1eb37e91;
     dev->interruptHandler = m35fdHandler;
     dev->reset = m35fdReset;
     dev->destroyData = NULL;
@@ -46,6 +46,7 @@ void m35fdHandler(Device* dev) {
             m35fd->currentOperation = dev->dcpu->regB;
             m35fd->currentEvent = addEvent(dev->dcpu->eventchain, abs(m35fd->currentTrack - m35fd->targetSector / 18) * 240, m35fdSwitchTrack, dev);
             m35fd->state = STATE_BUSY;
+            dev->dcpu->regB = 1;
             break;
     }
 }

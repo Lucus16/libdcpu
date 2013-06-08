@@ -24,7 +24,7 @@
 typedef uint16_t word;
 typedef union {uint16_t u; int16_t s;} wordu;
 typedef int64_t cycles_t;
-typedef struct {uint16_t ID; uint8_t version; uint16_t manufacturer;} Super;
+typedef struct {uint32_t ID; uint16_t version; uint32_t manufacturer;} Super;
 
 typedef struct DCPU DCPU;
 typedef struct Event Event;

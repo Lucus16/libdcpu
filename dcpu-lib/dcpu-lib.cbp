@@ -52,6 +52,10 @@
 			<Add option="-Wall" />
 			<Add option="-fPIC" />
 		</Compiler>
+		<Unit filename="cli.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cli.h" />
 		<Unit filename="clock.c">
 			<Option compilerVar="CC" />
 		</Unit>
