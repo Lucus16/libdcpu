@@ -6,8 +6,15 @@ DCPU* newDCPU() {
     dcpu->onfirefn = NULL;
     dcpu->oninvalid = NULL;
     dcpu->onbreak = NULL;
-    initCollection(&dcpu->devices, 16);
+    if (initCollection(&dcpu->devices, 16) != 0) {
+        destroyDCPU(dcpu);
+        return NULL;
+    }
     dcpu->eventchain = newChain();
+    if (dcpu->eventchain == NULL) {
+        destroyDCPU(dcpu);
+        return NULL;
+    }
     dcpu->hertz = 100000;
     rebootDCPU(dcpu, true);
     return dcpu;
@@ -57,7 +64,7 @@ int flashDCPU(DCPU* dcpu, char* filename) {
         if (b == EOF) { break; }
         dcpu->mem[i] = a << 8 | b;
     }
-    memset(dcpu->mem + i, 0, 131072 - i);
+    memset(dcpu->mem + i, 0, (65536 - i) * sizeof(word));
     fclose(file);
     return 0;
 }
