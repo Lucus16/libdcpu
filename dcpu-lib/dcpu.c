@@ -3,6 +3,7 @@
 DCPU* newDCPU() {
     DCPU* dcpu = malloc(sizeof(DCPU));
     if (dcpu == NULL) { return NULL; }
+    dcpu->name = NULL;
     dcpu->onfirefn = NULL;
     dcpu->oninvalid = NULL;
     dcpu->onbreak = NULL;
@@ -14,6 +15,7 @@ DCPU* newDCPU() {
 }
 
 void destroyDCPU(DCPU* dcpu) {
+    free(dcpu->name);
     destroyChain(dcpu->eventchain);
     free(dcpu->devices.data);
     free(dcpu);
@@ -23,7 +25,7 @@ void destroyDCPU(DCPU* dcpu) {
 void destroyDevice(Device* device) {
     if (device->destroyData != NULL) {
         device->destroyData(device);
-    } else if (device->data != NULL) {
+    } else {
         free(device->data);
     }
     free(device);

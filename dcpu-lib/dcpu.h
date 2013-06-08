@@ -31,15 +31,13 @@ typedef struct Event Event;
 typedef struct Device Device;
 
 typedef struct DCPU {
-    word mem[65536];
-    word reg[12]; //A, B, C, X, Y, Z, I, J, SP, PC, EX, IA
+    char* name;
     bool skipping;
     bool queuing;
     bool onfire;
     bool running;
     int hertz;
     cycles_t cycleno;
-    word interrupts[256];
     uint8_t firstInterrupt;
     int interruptCount;
     void (*onfirefn)(DCPU*);
@@ -47,6 +45,9 @@ typedef struct DCPU {
     void (*onbreak)(DCPU*);
     Collection devices;
     Event* eventchain;
+    word reg[12]; //A, B, C, X, Y, Z, I, J, SP, PC, EX, IA
+    word interrupts[256];
+    word mem[65536];
 } DCPU;
 
 typedef struct Device {
