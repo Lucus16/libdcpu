@@ -88,14 +88,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
-    static int validBasic[32] = {
-        0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-        1,1,1,1,1,1,1,1,0,0,1,1,0,0,1,1
-    };
-    static int validAdvanced[32] = {
-        0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,
-        1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0
-    };
 
     if (!dcpu->running) { return 0; }
     cycles_t targetcycles = dcpu->cycleno + cyclestodo;
@@ -138,471 +130,474 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
         }
-        if (validBasic[opcode] || (opcode == 0 && validAdvanced[argb])) {
-            switch (arga) {
+        switch (arga) {
+            case 0:
+                aValue.u = dcpu->regA;
+                break;
+            case 1:
+                aValue.u = dcpu->regB;
+                break;
+            case 2:
+                aValue.u = dcpu->regC;
+                break;
+            case 3:
+                aValue.u = dcpu->regX;
+                break;
+            case 4:
+                aValue.u = dcpu->regY;
+                break;
+            case 5:
+                aValue.u = dcpu->regZ;
+                break;
+            case 6:
+                aValue.u = dcpu->regI;
+                break;
+            case 7:
+                aValue.u = dcpu->regJ;
+                break;
+            case 8:
+                aValue.u = dcpu->mem[dcpu->regA];
+                break;
+            case 9:
+                aValue.u = dcpu->mem[dcpu->regB];
+                break;
+            case 10:
+                aValue.u = dcpu->mem[dcpu->regC];
+                break;
+            case 11:
+                aValue.u = dcpu->mem[dcpu->regX];
+                break;
+            case 12:
+                aValue.u = dcpu->mem[dcpu->regY];
+                break;
+            case 13:
+                aValue.u = dcpu->mem[dcpu->regZ];
+                break;
+            case 14:
+                aValue.u = dcpu->mem[dcpu->regI];
+                break;
+            case 15:
+                aValue.u = dcpu->mem[dcpu->regJ];
+                break;
+            case 16:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 17:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 18:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 19:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 20:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 21:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 22:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 23:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 24:
+                aValue.u = dcpu->mem[dcpu->regSP++];
+                break;
+            case 25:
+                aValue.u = dcpu->mem[dcpu->regSP];
+                break;
+            case 26:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                break;
+            case 27:
+                aValue.u = dcpu->regSP;
+                break;
+            case 28:
+                aValue.u = dcpu->regPC;
+                break;
+            case 29:
+                aValue.u = dcpu->regEX;
+                break;
+            case 30:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                break;
+            case 31:
+                dcpu->cycleno++;
+                aValue.u = dcpu->mem[dcpu->regPC++];
+                break;
+            default:
+                aValue.u = arga - 33;
+                break;
+        }
+
+        if (opcode != 0) {
+            switch (argb) {
                 case 0:
-                    aValue.u = dcpu->regA;
+                    bValue.u = dcpu->regA;
                     break;
                 case 1:
-                    aValue.u = dcpu->regB;
+                    bValue.u = dcpu->regB;
                     break;
                 case 2:
-                    aValue.u = dcpu->regC;
+                    bValue.u = dcpu->regC;
                     break;
                 case 3:
-                    aValue.u = dcpu->regX;
+                    bValue.u = dcpu->regX;
                     break;
                 case 4:
-                    aValue.u = dcpu->regY;
+                    bValue.u = dcpu->regY;
                     break;
                 case 5:
-                    aValue.u = dcpu->regZ;
+                    bValue.u = dcpu->regZ;
                     break;
                 case 6:
-                    aValue.u = dcpu->regI;
+                    bValue.u = dcpu->regI;
                     break;
                 case 7:
-                    aValue.u = dcpu->regJ;
+                    bValue.u = dcpu->regJ;
                     break;
                 case 8:
-                    aValue.u = dcpu->mem[dcpu->regA];
+                    bValue.u = dcpu->mem[dcpu->regA];
                     break;
                 case 9:
-                    aValue.u = dcpu->mem[dcpu->regB];
+                    bValue.u = dcpu->mem[dcpu->regB];
                     break;
                 case 10:
-                    aValue.u = dcpu->mem[dcpu->regC];
+                    bValue.u = dcpu->mem[dcpu->regC];
                     break;
                 case 11:
-                    aValue.u = dcpu->mem[dcpu->regX];
+                    bValue.u = dcpu->mem[dcpu->regX];
                     break;
                 case 12:
-                    aValue.u = dcpu->mem[dcpu->regY];
+                    bValue.u = dcpu->mem[dcpu->regY];
                     break;
                 case 13:
-                    aValue.u = dcpu->mem[dcpu->regZ];
+                    bValue.u = dcpu->mem[dcpu->regZ];
                     break;
                 case 14:
-                    aValue.u = dcpu->mem[dcpu->regI];
+                    bValue.u = dcpu->mem[dcpu->regI];
                     break;
                 case 15:
-                    aValue.u = dcpu->mem[dcpu->regJ];
+                    bValue.u = dcpu->mem[dcpu->regJ];
                     break;
                 case 16:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 17:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 18:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 19:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 20:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 21:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 22:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 23:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 24:
-                    aValue.u = dcpu->mem[dcpu->regSP++];
+                    bValue.u = dcpu->mem[--dcpu->regSP];
                     break;
                 case 25:
-                    aValue.u = dcpu->mem[dcpu->regSP];
+                    bValue.u = dcpu->mem[dcpu->regSP];
                     break;
                 case 26:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
                     break;
                 case 27:
-                    aValue.u = dcpu->regSP;
+                    bValue.u = dcpu->regSP;
                     break;
                 case 28:
-                    aValue.u = dcpu->regPC;
+                    bValue.u = dcpu->regPC;
                     break;
                 case 29:
-                    aValue.u = dcpu->regEX;
+                    bValue.u = dcpu->regEX;
                     break;
                 case 30:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                    bValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
                     break;
                 case 31:
                     dcpu->cycleno++;
-                    aValue.u = dcpu->mem[dcpu->regPC++];
+                    bValue.u = dcpu->mem[dcpu->regPC++];
+                    break;
+            }
+
+            switch (opcode) {
+                case 1: //SET
+                    setB(dcpu, argb, aValue.u);
+                    dcpu->cycleno += 1;
+                    break;
+                case 2: //ADD
+                    setB(dcpu, argb, bValue.u + aValue.u);
+                    dcpu->regEX = bValue.u + aValue.u > 0xffff ? 1 : 0;
+                    dcpu->cycleno += 2;
+                    break;
+                case 3: //SUB
+                    setB(dcpu, argb, bValue.u - aValue.u);
+                    dcpu->regEX = bValue.u - aValue.u < 0 ? -1 : 0;
+                    dcpu->cycleno += 2;
+                    break;
+                case 4: //MUL
+                    setB(dcpu, argb, bValue.u * aValue.u);
+                    dcpu->regEX = (bValue.u * aValue.u) >> 16;
+                    dcpu->cycleno += 2;
+                    break;
+                case 5: //MLI
+                    setB(dcpu, argb, bValue.s * aValue.s);
+                    dcpu->regEX = (bValue.s * aValue.s) >> 16;
+                    dcpu->cycleno += 2;
+                    break;
+                case 6: //DIV
+                    if (aValue.u == 0) {
+                        setB(dcpu, argb, 0);
+                        dcpu->regEX = 0;
+                    } else {
+                        setB(dcpu, argb, bValue.u / aValue.u);
+                        dcpu->regEX = (bValue.u << 16) / aValue.u;
+                    }
+                    dcpu->cycleno += 3;
+                    break;
+                case 7: //DVI
+                    if (aValue.s == 0) {
+                        setB(dcpu, argb, 0);
+                        dcpu->regEX = 0;
+                    } else {
+                        setB(dcpu, argb, bValue.s / aValue.s);
+                        dcpu->regEX = (bValue.s << 16) / aValue.s;
+                    }
+                    dcpu->cycleno += 3;
+                    break;
+                case 8: //MOD
+                    if (aValue.u == 0) {
+                        setB(dcpu, argb, 0);
+                    } else {
+                        setB(dcpu, argb, bValue.u % aValue.u);
+                    }
+                    dcpu->cycleno += 3;
+                    break;
+                case 9: //MDI
+                    if (aValue.s == 0) {
+                        setB(dcpu, argb, 0);
+                    } else {
+                        setB(dcpu, argb, bValue.s % aValue.s);
+                    }
+                    dcpu->cycleno += 3;
+                    break;
+                case 10: //AND
+                    setB(dcpu, argb, bValue.u & aValue.u);
+                    dcpu->cycleno += 1;
+                    break;
+                case 11: //BOR
+                    setB(dcpu, argb, bValue.u | aValue.u);
+                    dcpu->cycleno += 1;
+                    break;
+                case 12: //XOR
+                    setB(dcpu, argb, bValue.u ^ aValue.u);
+                    dcpu->cycleno += 1;
+                    break;
+                case 13: //SHR
+                    setB(dcpu, argb, bValue.u >> aValue.u);
+                    dcpu->regEX = ((int)bValue.u << 16) >> aValue.u;
+                    dcpu->cycleno += 1;
+                    break;
+                case 14: //ASR
+                    setB(dcpu, argb, bValue.s >> aValue.u);
+                    dcpu->regEX = ((int)bValue.s << 16) >> aValue.u;
+                    dcpu->cycleno += 1;
+                    break;
+                case 15: //SHL
+                    setB(dcpu, argb, bValue.u << aValue.u);
+                    dcpu->regEX = ((int)bValue.u << aValue.u) >> 16;
+                    dcpu->cycleno += 1;
+                    break;
+                case 16: //IFB
+                    dcpu->skipping = (bValue.u & aValue.u) == 0;
+                    dcpu->cycleno += 2;
+                    break;
+                case 17: //IFC
+                    dcpu->skipping = (bValue.u & aValue.u) != 0;
+                    dcpu->cycleno += 2;
+                    break;
+                case 18: //IFE
+                    dcpu->skipping = bValue.u != aValue.u;
+                    dcpu->cycleno += 2;
+                    break;
+                case 19: //IFN
+                    dcpu->skipping = bValue.u == aValue.u;
+                    dcpu->cycleno += 2;
+                    break;
+                case 20: //IFG
+                    dcpu->skipping = bValue.u <= aValue.u;
+                    dcpu->cycleno += 2;
+                    break;
+                case 21: //IFA
+                    dcpu->skipping = bValue.s <= aValue.s;
+                    dcpu->cycleno += 2;
+                    break;
+                case 22: //IFL
+                    dcpu->skipping = bValue.u >= aValue.u;
+                    dcpu->cycleno += 2;
+                    break;
+                case 23: //IFU
+                    dcpu->skipping = bValue.s >= aValue.s;
+                    dcpu->cycleno += 2;
+                    break;
+                case 26: //ADX
+                    tmp = bValue.u + aValue.u + dcpu->regEX;
+                    setB(dcpu, argb, tmp);
+                    dcpu->regEX = tmp > 0xffff ? 1 : 0;
+                    dcpu->cycleno += 3;
+                    break;
+                case 27: //SBX
+                    tmp = bValue.u - aValue.u + dcpu->regEX;
+                    setB(dcpu, argb, tmp);
+                    dcpu->regEX = tmp > 0xffff ? 1 : (tmp < 0 ? -1 : 0);
+                    dcpu->cycleno += 3;
+                    break;
+                case 30: //STI
+                    setB(dcpu, argb, aValue.u);
+                    dcpu->regI++;
+                    dcpu->regJ++;
+                    dcpu->cycleno += 2;
+                    break;
+                case 31: //STD
+                    setB(dcpu, argb, aValue.u);
+                    dcpu->regI--;
+                    dcpu->regJ--;
+                    dcpu->cycleno += 2;
                     break;
                 default:
-                    aValue.u = arga - 33;
-                    break;
+                    dcpu->cycleno++;
             }
 
-            if (opcode != 0) {
-                switch (argb) {
+        } else {
+            switch (argb) {
+                case 1: //JSR
+                    push(dcpu, dcpu->regPC);
+                    dcpu->regPC = aValue.u;
+                    dcpu->cycleno += 3;
+                    break;
+                case 8: //INT
+                    dcpu->interrupts[(dcpu->firstInterrupt + ++dcpu->interruptCount) & 0xff] = aValue.u;
+                    if (dcpu->interruptCount > 256) {
+                        dcpu->onfire = true;
+                    }
+                    dcpu->cycleno += 4;
+                    break;
+                case 9: //IAG
+                    setValue = dcpu->regIA;
+                    doSet = true;
+                    dcpu->cycleno += 1;
+                    break;
+                case 10: //IAS
+                    dcpu->regIA = aValue.u;
+                    dcpu->cycleno += 1;
+                    break;
+                case 11: //RFI
+                    dcpu->queuing = false;
+                    dcpu->regA = pop(dcpu);
+                    dcpu->regPC = pop(dcpu);
+                    dcpu->cycleno += 3;
+                    break;
+                case 12: //IAQ
+                    dcpu->queuing = aValue.u;
+                    dcpu->cycleno += 3;
+                    break;
+                case 16: //HWN
+                    setValue = dcpu->devices.used;
+                    doSet = true;
+                    dcpu->cycleno += 2;
+                    break;
+                case 17: //HWQ
+                    if (aValue.u < dcpu->devices.used) {
+                        super = &((Device*)dcpu->devices.data[aValue.u])->super;
+                        dcpu->regA = super->ID & 0xffff;
+                        dcpu->regB = super->ID >> 16;
+                        dcpu->regC = super->version;
+                        dcpu->regX = super->manufacturer & 0xffff;
+                        dcpu->regY = super->manufacturer >> 16;
+                    }
+                    dcpu->cycleno += 4;
+                    break;
+                case 18: //HWI
+                    ((Device*)dcpu->devices.data[aValue.u])->interruptHandler(*(dcpu->devices.data + aValue.u));
+                    dcpu->cycleno += 4;
+                    break;
+                default:
+                    dcpu->cycleno++;
+            }
+
+            if (doSet) {
+                doSet = false;
+                switch (arga >> 3) {
                     case 0:
-                        bValue.u = dcpu->regA;
+                        dcpu->reg[arga & 0x7] = setValue;
                         break;
                     case 1:
-                        bValue.u = dcpu->regB;
+                        dcpu->mem[dcpu->reg[arga & 0x7]] = setValue;
                         break;
                     case 2:
-                        bValue.u = dcpu->regC;
+                        dcpu->mem[(dcpu->reg[arga & 0x7] + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = setValue;
                         break;
                     case 3:
-                        bValue.u = dcpu->regX;
-                        break;
-                    case 4:
-                        bValue.u = dcpu->regY;
-                        break;
-                    case 5:
-                        bValue.u = dcpu->regZ;
-                        break;
-                    case 6:
-                        bValue.u = dcpu->regI;
-                        break;
-                    case 7:
-                        bValue.u = dcpu->regJ;
-                        break;
-                    case 8:
-                        bValue.u = dcpu->mem[dcpu->regA];
-                        break;
-                    case 9:
-                        bValue.u = dcpu->mem[dcpu->regB];
-                        break;
-                    case 10:
-                        bValue.u = dcpu->mem[dcpu->regC];
-                        break;
-                    case 11:
-                        bValue.u = dcpu->mem[dcpu->regX];
-                        break;
-                    case 12:
-                        bValue.u = dcpu->mem[dcpu->regY];
-                        break;
-                    case 13:
-                        bValue.u = dcpu->mem[dcpu->regZ];
-                        break;
-                    case 14:
-                        bValue.u = dcpu->mem[dcpu->regI];
-                        break;
-                    case 15:
-                        bValue.u = dcpu->mem[dcpu->regJ];
-                        break;
-                    case 16:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 17:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 18:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 19:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 20:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 21:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 22:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 23:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 24:
-                        bValue.u = dcpu->mem[--dcpu->regSP];
-                        break;
-                    case 25:
-                        bValue.u = dcpu->mem[dcpu->regSP];
-                        break;
-                    case 26:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
-                        break;
-                    case 27:
-                        bValue.u = dcpu->regSP;
-                        break;
-                    case 28:
-                        bValue.u = dcpu->regPC;
-                        break;
-                    case 29:
-                        bValue.u = dcpu->regEX;
-                        break;
-                    case 30:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
-                        break;
-                    case 31:
-                        dcpu->cycleno++;
-                        bValue.u = dcpu->mem[dcpu->regPC++];
-                        break;
+                        switch (arga & 0x7) {
+                            case 0:
+                                dcpu->mem[dcpu->regSP - 1] = setValue;
+                                break;
+                            case 1:
+                                dcpu->mem[dcpu->regSP] = setValue;
+                                break;
+                            case 2:
+                                dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = setValue;
+                                break;
+                            case 3:
+                                dcpu->regSP = setValue;
+                                break;
+                            case 4:
+                                dcpu->regPC = setValue;
+                                break;
+                            case 5:
+                                dcpu->regEX = setValue;
+                                break;
+                            case 6:
+                                dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = setValue;
+                                break;
+                        }
                 }
 
-                switch (opcode) {
-                    case 1: //SET
-                        setB(dcpu, argb, aValue.u);
-                        dcpu->cycleno += 1;
-                        break;
-                    case 2: //ADD
-                        setB(dcpu, argb, bValue.u + aValue.u);
-                        dcpu->regEX = bValue.u + aValue.u > 0xffff ? 1 : 0;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 3: //SUB
-                        setB(dcpu, argb, bValue.u - aValue.u);
-                        dcpu->regEX = bValue.u - aValue.u < 0 ? -1 : 0;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 4: //MUL
-                        setB(dcpu, argb, bValue.u * aValue.u);
-                        dcpu->regEX = (bValue.u * aValue.u) >> 16;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 5: //MLI
-                        setB(dcpu, argb, bValue.s * aValue.s);
-                        dcpu->regEX = (bValue.s * aValue.s) >> 16;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 6: //DIV
-                        if (aValue.u == 0) {
-                            setB(dcpu, argb, 0);
-                            dcpu->regEX = 0;
-                        } else {
-                            setB(dcpu, argb, bValue.u / aValue.u);
-                            dcpu->regEX = (bValue.u << 16) / aValue.u;
-                        }
-                        dcpu->cycleno += 3;
-                        break;
-                    case 7: //DVI
-                        if (aValue.s == 0) {
-                            setB(dcpu, argb, 0);
-                            dcpu->regEX = 0;
-                        } else {
-                            setB(dcpu, argb, bValue.s / aValue.s);
-                            dcpu->regEX = (bValue.s << 16) / aValue.s;
-                        }
-                        dcpu->cycleno += 3;
-                        break;
-                    case 8: //MOD
-                        if (aValue.u == 0) {
-                            setB(dcpu, argb, 0);
-                        } else {
-                            setB(dcpu, argb, bValue.u % aValue.u);
-                        }
-                        dcpu->cycleno += 3;
-                        break;
-                    case 9: //MDI
-                        if (aValue.s == 0) {
-                            setB(dcpu, argb, 0);
-                        } else {
-                            setB(dcpu, argb, bValue.s % aValue.s);
-                        }
-                        dcpu->cycleno += 3;
-                        break;
-                    case 10: //AND
-                        setB(dcpu, argb, bValue.u & aValue.u);
-                        dcpu->cycleno += 1;
-                        break;
-                    case 11: //BOR
-                        setB(dcpu, argb, bValue.u | aValue.u);
-                        dcpu->cycleno += 1;
-                        break;
-                    case 12: //XOR
-                        setB(dcpu, argb, bValue.u ^ aValue.u);
-                        dcpu->cycleno += 1;
-                        break;
-                    case 13: //SHR
-                        setB(dcpu, argb, bValue.u >> aValue.u);
-                        dcpu->regEX = ((int)bValue.u << 16) >> aValue.u;
-                        dcpu->cycleno += 1;
-                        break;
-                    case 14: //ASR
-                        setB(dcpu, argb, bValue.s >> aValue.u);
-                        dcpu->regEX = ((int)bValue.s << 16) >> aValue.u;
-                        dcpu->cycleno += 1;
-                        break;
-                    case 15: //SHL
-                        setB(dcpu, argb, bValue.u << aValue.u);
-                        dcpu->regEX = ((int)bValue.u << aValue.u) >> 16;
-                        dcpu->cycleno += 1;
-                        break;
-                    case 16: //IFB
-                        dcpu->skipping = (bValue.u & aValue.u) == 0;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 17: //IFC
-                        dcpu->skipping = (bValue.u & aValue.u) != 0;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 18: //IFE
-                        dcpu->skipping = bValue.u != aValue.u;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 19: //IFN
-                        dcpu->skipping = bValue.u == aValue.u;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 20: //IFG
-                        dcpu->skipping = bValue.u <= aValue.u;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 21: //IFA
-                        dcpu->skipping = bValue.s <= aValue.s;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 22: //IFL
-                        dcpu->skipping = bValue.u >= aValue.u;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 23: //IFU
-                        dcpu->skipping = bValue.s >= aValue.s;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 26: //ADX
-                        tmp = bValue.u + aValue.u + dcpu->regEX;
-                        setB(dcpu, argb, tmp);
-                        dcpu->regEX = tmp > 0xffff ? 1 : 0;
-                        dcpu->cycleno += 3;
-                        break;
-                    case 27: //SBX
-                        tmp = bValue.u - aValue.u + dcpu->regEX;
-                        setB(dcpu, argb, tmp);
-                        dcpu->regEX = tmp > 0xffff ? 1 : (tmp < 0 ? -1 : 0);
-                        dcpu->cycleno += 3;
-                        break;
-                    case 30: //STI
-                        setB(dcpu, argb, aValue.u);
-                        dcpu->regI++;
-                        dcpu->regJ++;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 31: //STD
-                        setB(dcpu, argb, aValue.u);
-                        dcpu->regI--;
-                        dcpu->regJ--;
-                        dcpu->cycleno += 2;
-                        break;
-                }
-
-            } else {
-                switch (argb) {
-                    case 1: //JSR
-                        push(dcpu, dcpu->regPC);
-                        dcpu->regPC = aValue.u;
-                        dcpu->cycleno += 3;
-                        break;
-                    case 8: //INT
-                        addInterrupt(dcpu, aValue.u);
-                        dcpu->cycleno += 4;
-                        break;
-                    case 9: //IAG
-                        setValue = dcpu->regIA;
-                        doSet = true;
-                        dcpu->cycleno += 1;
-                        break;
-                    case 10: //IAS
-                        dcpu->regIA = aValue.u;
-                        dcpu->cycleno += 1;
-                        break;
-                    case 11: //RFI
-                        dcpu->queuing = false;
-                        dcpu->regA = pop(dcpu);
-                        dcpu->regPC = pop(dcpu);
-                        dcpu->cycleno += 3;
-                        break;
-                    case 12: //IAQ
-                        dcpu->queuing = aValue.u;
-                        dcpu->cycleno += 3;
-                        break;
-                    case 16: //HWN
-                        setValue = dcpu->devices.used;
-                        doSet = true;
-                        dcpu->cycleno += 2;
-                        break;
-                    case 17: //HWQ
-                        if (aValue.u < dcpu->devices.used) {
-                            super = &((Device*)dcpu->devices.data[aValue.u])->super;
-                            dcpu->regA = super->ID & 0xffff;
-                            dcpu->regB = super->ID >> 16;
-                            dcpu->regC = super->version;
-                            dcpu->regX = super->manufacturer & 0xffff;
-                            dcpu->regY = super->manufacturer >> 16;
-                        }
-                        dcpu->cycleno += 4;
-                        break;
-                    case 18: //HWI
-                        ((Device*)dcpu->devices.data[aValue.u])->interruptHandler(*(dcpu->devices.data + aValue.u));
-                        dcpu->cycleno += 4;
-                        break;
-                }
-
-                if (doSet) {
-                    doSet = false;
-                    switch (arga >> 3) {
-                        case 0:
-                            dcpu->reg[arga & 0x7] = setValue;
-                            break;
-                        case 1:
-                            dcpu->mem[dcpu->reg[arga & 0x7]] = setValue;
-                            break;
-                        case 2:
-                            dcpu->mem[(dcpu->reg[arga & 0x7] + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = setValue;
-                            break;
-                        case 3:
-                            switch (arga & 0x7) {
-                                case 0:
-                                    dcpu->mem[dcpu->regSP - 1] = setValue;
-                                    break;
-                                case 1:
-                                    dcpu->mem[dcpu->regSP] = setValue;
-                                    break;
-                                case 2:
-                                    dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = setValue;
-                                    break;
-                                case 3:
-                                    dcpu->regSP = setValue;
-                                    break;
-                                case 4:
-                                    dcpu->regPC = setValue;
-                                    break;
-                                case 5:
-                                    dcpu->regEX = setValue;
-                                    break;
-                                case 6:
-                                    dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = setValue;
-                                    break;
-                            }
-                    }
-
-                }
             }
-        } else {
-            dcpu->cycleno++;
         }
     }
     return dcpu->cycleno - oldCycles;
@@ -616,37 +611,97 @@ void addInterrupt(DCPU* dcpu, word value) {
 }
 
 void setB(DCPU* dcpu, int argb, word value) {
-    switch (argb >> 3) {
+    switch (argb) {
         case 0:
-            dcpu->reg[argb & 0x7] = value;
+            dcpu->regA = value;
             return;
         case 1:
-            dcpu->mem[dcpu->reg[argb & 0x7]] = value;
+            dcpu->regB = value;
             return;
         case 2:
-            dcpu->mem[(dcpu->reg[argb & 0x7] + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            dcpu->regC = value;
             return;
         case 3:
-            switch (argb & 0x7) {
-                case 0:
-                case 1:
-                    dcpu->mem[dcpu->regSP] = value;
-                    return;
-                case 2:
-                    dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-                    return;
-                case 3:
-                    dcpu->regSP = value;
-                    return;
-                case 4:
-                    dcpu->regPC = value;
-                    return;
-                case 5:
-                    dcpu->regEX = value;
-                    return;
-                case 6:
-                    dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = value;
-                    return;
-            }
+            dcpu->regX = value;
+            return;
+        case 4:
+            dcpu->regY = value;
+            return;
+        case 5:
+            dcpu->regZ = value;
+            return;
+        case 6:
+            dcpu->regI = value;
+            return;
+        case 7:
+            dcpu->regJ = value;
+            return;
+        case 8:
+            dcpu->mem[dcpu->regA] = value;
+            return;
+        case 9:
+            dcpu->mem[dcpu->regB] = value;
+            return;
+        case 10:
+            dcpu->mem[dcpu->regC] = value;
+            return;
+        case 11:
+            dcpu->mem[dcpu->regX] = value;
+            return;
+        case 12:
+            dcpu->mem[dcpu->regY] = value;
+            return;
+        case 13:
+            dcpu->mem[dcpu->regZ] = value;
+            return;
+        case 14:
+            dcpu->mem[dcpu->regI] = value;
+            return;
+        case 15:
+            dcpu->mem[dcpu->regJ] = value;
+            return;
+        case 16:
+            dcpu->mem[(dcpu->regA + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 17:
+            dcpu->mem[(dcpu->regB + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 18:
+            dcpu->mem[(dcpu->regC + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 19:
+            dcpu->mem[(dcpu->regX + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 20:
+            dcpu->mem[(dcpu->regY + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 21:
+            dcpu->mem[(dcpu->regZ + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 22:
+            dcpu->mem[(dcpu->regI + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 23:
+            dcpu->mem[(dcpu->regJ + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 24:
+        case 25:
+            dcpu->mem[dcpu->regSP] = value;
+            return;
+        case 26:
+            dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
+            return;
+        case 27:
+            dcpu->regSP = value;
+            return;
+        case 28:
+            dcpu->regPC = value;
+            return;
+        case 29:
+            dcpu->regEX = value;
+            return;
+        case 30:
+            dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = value;
+            return;
     }
 }
