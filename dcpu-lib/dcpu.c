@@ -3,10 +3,6 @@
 DCPU* newDCPU() {
     DCPU* dcpu = malloc(sizeof(DCPU));
     if (dcpu == NULL) { return NULL; }
-    dcpu->name[0] = '\0';
-    dcpu->onfirefn = NULL;
-    dcpu->oninvalid = NULL;
-    dcpu->onbreak = NULL;
     if (initCollection(&dcpu->devices, 16) != 0) {
         destroyDCPU(dcpu);
         return NULL;
@@ -100,17 +96,9 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,
         1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
-    bool stepping;
-    cycles_t targetcycles;
 
-    if (cyclestodo == -1) {
-        stepping = true;
-        targetcycles = dcpu->cycleno + 1;
-    } else {
-        if (!dcpu->running) { return 0; }
-        stepping = false;
-        targetcycles = dcpu->cycleno + cyclestodo;
-    }
+    if (!dcpu->running) { return 0; }
+    cycles_t targetcycles = dcpu->cycleno + cyclestodo;
     cycles_t oldCycles = dcpu->cycleno;
     Event* eventchain = dcpu->eventchain;
     Event* event;
@@ -120,10 +108,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     word instruction, setValue;
     int opcode, arga, argb, tmp;
     bool doSet = false;
-    while ((dcpu->cycleno < targetcycles) && (dcpu->running || stepping)) {
-        //if (dcpu->onfire && dcpu->onfirefn) {
-        //    dcpu->onfirefn(dcpu);
-        //} //Disabled for speed, may be reenabled in a seperate docyclesonfire()
+    while ((dcpu->cycleno < targetcycles) && dcpu->running) {
         event = eventchain->nextevent;
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
@@ -618,9 +603,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             }
         } else {
             dcpu->cycleno++;
-            if (dcpu->oninvalid != NULL) {
-                dcpu->oninvalid(dcpu);
-            }
         }
     }
     return dcpu->cycleno - oldCycles;
