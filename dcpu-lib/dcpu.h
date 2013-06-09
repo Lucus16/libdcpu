@@ -51,6 +51,7 @@ typedef struct DCPU {
 } DCPU;
 
 typedef struct Device {
+    char name[40];
     DCPU* dcpu;
     Super super;
     void* data;
