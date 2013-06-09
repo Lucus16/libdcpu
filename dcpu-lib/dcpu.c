@@ -112,29 +112,18 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         targetcycles = dcpu->cycleno + cyclestodo;
     }
     cycles_t oldCycles = dcpu->cycleno;
-    Event* event;
     Event* eventchain = dcpu->eventchain;
+    Event* event;
     Event* del;
     Super* super;
     wordu aValue, bValue;
     word instruction, setValue;
     int opcode, arga, argb, tmp;
-    bool doSet;
+    bool doSet = false;
     while ((dcpu->cycleno < targetcycles) && (dcpu->running || stepping)) {
         //if (dcpu->onfire && dcpu->onfirefn) {
         //    dcpu->onfirefn(dcpu);
         //} //Disabled for speed, may be reenabled in a seperate docyclesonfire()
-        if (dcpu->interruptCount != 0 && !dcpu->queuing && !dcpu->skipping) {
-            if (dcpu->regIA != 0) {
-                push(dcpu, dcpu->regPC);
-                push(dcpu, dcpu->regA);
-                dcpu->regPC = dcpu->regIA;
-                dcpu->regA = dcpu->interrupts[dcpu->firstInterrupt];
-                dcpu->queuing = true;
-            }
-            dcpu->firstInterrupt++;
-            dcpu->interruptCount--;
-        }
         event = eventchain->nextevent;
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
@@ -151,7 +140,20 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->cycleno++;
             dcpu->regPC += valueLengths[arga] + valueLengths[argb];
             dcpu->skipping = (opcode > 0xf && opcode < 0x18);
-        } else if (validBasic[opcode] || (opcode == 0 && validAdvanced[argb])) {
+            continue;
+        }
+        if (dcpu->interruptCount != 0 && !dcpu->queuing) {
+            if (dcpu->regIA != 0) {
+                push(dcpu, dcpu->regPC);
+                push(dcpu, dcpu->regA);
+                dcpu->regPC = dcpu->regIA;
+                dcpu->regA = dcpu->interrupts[dcpu->firstInterrupt];
+                dcpu->queuing = true;
+            }
+            dcpu->firstInterrupt++;
+            dcpu->interruptCount--;
+        }
+        if (validBasic[opcode] || (opcode == 0 && validAdvanced[argb])) {
             switch (arga) {
                 case 0:
                     aValue.u = dcpu->regA;
@@ -523,7 +525,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                 }
 
             } else {
-                doSet = false;
                 switch (argb) {
                     case 1: //JSR
                         push(dcpu, dcpu->regPC);
@@ -576,6 +577,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                 }
 
                 if (doSet) {
+                    doSet = false;
                     switch (arga >> 3) {
                         case 0:
                             dcpu->reg[arga & 0x7] = setValue;
@@ -613,7 +615,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                     }
 
                 }
-
             }
         } else {
             dcpu->cycleno++;
