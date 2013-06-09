@@ -105,6 +105,14 @@ void runCommand(CLIData* clidata, char input[82]) {
         printf("%i cycles were executed on main dcpu.\n", tmpint);
         return;
     }
+    if (strcmp(input, "status") == 0) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to display the status of.\n");
+        } else {
+            printStatus(clidata->dcpu);
+        }
+        return;
+    }
     if (sscanf(input, "load floppy %s as %s", tmpstr, tmpstr2) == 2) {
         Floppy* tmpfloppy = man_loadFloppy(man, tmpstr, false);
         if (tmpfloppy == NULL) {

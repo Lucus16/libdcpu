@@ -100,10 +100,18 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,
         1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
+    bool stepping;
+    cycles_t targetcycles;
 
-    if (!dcpu->running && cyclestodo != -1) { return 0; }
-    if (cyclestodo == -1) { cyclestodo = 1; }
-    cycles_t targetcycles = dcpu->cycleno + cyclestodo;
+    if (cyclestodo == -1) {
+        stepping = true;
+        targetcycles = dcpu->cycleno + 1;
+    } else {
+        if (!dcpu->running) { return 0; }
+        stepping = false;
+        targetcycles = dcpu->cycleno + cyclestodo;
+    }
+    cycles_t oldCycles = dcpu->cycleno;
     Event* event;
     Event* eventchain = dcpu->eventchain;
     Event* del;
@@ -112,7 +120,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     word instruction, setValue;
     int opcode, arga, argb, tmp;
     bool doSet;
-    while ((dcpu->cycleno < targetcycles) && dcpu->running) {
+    while ((dcpu->cycleno < targetcycles) && (dcpu->running || stepping)) {
         //if (dcpu->onfire && dcpu->onfirefn) {
         //    dcpu->onfirefn(dcpu);
         //} //Disabled for speed, may be reenabled in a seperate docyclesonfire()
@@ -614,7 +622,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             }
         }
     }
-    return dcpu->cycleno - (targetcycles - cyclestodo);
+    return dcpu->cycleno - oldCycles;
 }
 
 void addInterrupt(DCPU* dcpu, word value) {
