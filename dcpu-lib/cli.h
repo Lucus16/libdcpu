@@ -9,7 +9,8 @@ typedef struct CLIData {
 } CLIData;
 
 CLIData* newCLI();
+void freeCLI(CLIData* clidata);
 void runCommand(CLIData* clidata, char input[82]);
-void cliMainLoop(CLIData* clidata);
+void cliMainLoop();
 
 #endif // CLI_H_INCLUDED

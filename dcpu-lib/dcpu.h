@@ -31,7 +31,7 @@ typedef struct Event Event;
 typedef struct Device Device;
 
 typedef struct DCPU {
-    char* name;
+    char name[40];
     bool skipping;
     bool queuing;
     bool onfire;

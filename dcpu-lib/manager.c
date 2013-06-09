@@ -43,7 +43,7 @@ int man_freeDCPU(Manager* man, DCPU* dcpu) {
     return ret;
 }
 
-Floppy* man_newFloppy(Manager* man, const char* filename, bool writeProtected) {
+Floppy* man_newFloppy(Manager* man, char* filename, bool writeProtected) {
     Floppy* floppy = malloc(sizeof(Floppy));
     if (floppy == NULL) { return NULL; }
     if (collectionAdd(&man->floppies, floppy) != 0) {
@@ -56,7 +56,7 @@ Floppy* man_newFloppy(Manager* man, const char* filename, bool writeProtected) {
     return floppy;
 }
 
-Floppy* man_loadFloppy(Manager* man, const char* filename, bool writeProtected) {
+Floppy* man_loadFloppy(Manager* man, char* filename, bool writeProtected) {
     Floppy* floppy = malloc(sizeof(Floppy));
     if (floppy == NULL) { return NULL; }
     if (collectionAdd(&man->floppies, floppy) != 0 || flashFloppy(floppy, filename) != 0) {

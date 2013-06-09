@@ -17,8 +17,8 @@ void freeManager(Manager* man);
 DCPU* man_newDCPU(Manager* man);
 int man_freeDCPU(Manager* man, DCPU* dcpu);
 
-Floppy* man_newFloppy(Manager* man, const char* filename, bool writeProtected);
-Floppy* man_loadFloppy(Manager* man, const char* filename, bool writeProtected);
+Floppy* man_newFloppy(Manager* man, char* filename, bool writeProtected);
+Floppy* man_loadFloppy(Manager* man, char* filename, bool writeProtected);
 int man_saveFloppy(Manager* man, Floppy* floppy);
 
 Device* man_newDevice(Manager* man);

@@ -4,7 +4,8 @@
 #include "dcpu.h"
 
 typedef struct Floppy {
-    const char* filename;
+    char name[40];
+    char* filename;
     bool writeProtected;
     word data[737280];
 } Floppy;
