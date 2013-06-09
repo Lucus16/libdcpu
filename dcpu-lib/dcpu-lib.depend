@@ -1,1 +1,55 @@
 # depslib dependency file v1.0
+1370810523 source:/home/lars/git/libdcpu/dcpu-lib/cli.c
+	"main.h"
+	"cli.h"
+
+1370366182 /home/lars/git/libdcpu/dcpu-lib/main.h
+	<stdint.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+
+1370809100 /home/lars/git/libdcpu/dcpu-lib/cli.h
+	"manager.h"
+
+1370738901 /home/lars/git/libdcpu/dcpu-lib/manager.h
+	"m35fd.h"
+
+1370805706 /home/lars/git/libdcpu/dcpu-lib/m35fd.h
+	"dcpu.h"
+
+1370805720 /home/lars/git/libdcpu/dcpu-lib/dcpu.h
+	"main.h"
+	"event.h"
+	"collection.h"
+
+1370188925 /home/lars/git/libdcpu/dcpu-lib/event.h
+	"main.h"
+
+1370372303 /home/lars/git/libdcpu/dcpu-lib/collection.h
+
+1370613143 source:/home/lars/git/libdcpu/dcpu-lib/clock.c
+	"dcpu.h"
+	"manager.h"
+	"clock.h"
+
+1370805712 /home/lars/git/libdcpu/dcpu-lib/clock.h
+
+1370374149 source:/home/lars/git/libdcpu/dcpu-lib/collection.c
+	"main.h"
+	"collection.h"
+
+1370811480 source:/home/lars/git/libdcpu/dcpu-lib/dcpu.c
+	"dcpu.h"
+
+1370613112 source:/home/lars/git/libdcpu/dcpu-lib/event.c
+	"event.h"
+
+1370707825 source:/home/lars/git/libdcpu/dcpu-lib/m35fd.c
+	"m35fd.h"
+
+1370738909 source:/home/lars/git/libdcpu/dcpu-lib/manager.c
+	"dcpu.h"
+	"manager.h"
+	"clock.h"
+

@@ -1,3 +1,7 @@
-This is a project to implement a fast emulator for DCPU in C.
-It is not finished. Using it at this time can result in
-segfaults and/or memory leaks. Use at your own risk.
+This is a project to implement a library of tools for DCPU.
+Right now, it includes a fast emulator with accurate device timing
+and a command-line interface for debugging.
+It is not finished. Use at your own risk.
+Memory leaks and the likes are unlikely but not impossible.
+
+

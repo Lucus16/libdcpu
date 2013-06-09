@@ -42,6 +42,20 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-march=native" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Debugger">
+				<Option output="bin/Debugger/libdcpu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debugger/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -69,7 +83,7 @@
 		</Unit>
 		<Unit filename="dcpu.h" />
 		<Unit filename="doc.txt">
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="Debugger" />
 		</Unit>
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
@@ -79,6 +93,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="m35fd.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+			<Option target="Debugger" />
+		</Unit>
 		<Unit filename="main.h" />
 		<Unit filename="manager.c">
 			<Option compilerVar="CC" />
