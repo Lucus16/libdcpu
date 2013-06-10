@@ -27,10 +27,9 @@ typedef int64_t cycles_t;
 typedef struct {uint32_t ID; uint16_t version; uint32_t manufacturer;} Super;
 
 typedef struct DCPU DCPU;
-typedef struct Event Event;
 typedef struct Device Device;
 
-typedef struct DCPU {
+struct DCPU {
     bool skipping;
     bool queuing;
     bool onfire;
@@ -44,9 +43,9 @@ typedef struct DCPU {
     word reg[12]; //A, B, C, X, Y, Z, I, J, SP, PC, EX, IA
     word interrupts[256];
     word mem[65536];
-} DCPU;
+};
 
-typedef struct Device {
+struct Device {
     char name[40];
     DCPU* dcpu;
     Super super;
@@ -54,7 +53,7 @@ typedef struct Device {
     void (*interruptHandler)(Device*);
     void (*reset)(Device*);
     void (*destroyData)(Device*);
-} Device;
+};
 
 DCPU* newDCPU();
 void destroyDCPU(DCPU* dcpu);

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     int start = clock();
     docycles(dcpu, 1000000000);
     int finish = clock();
-    printf("Running one billion cycles took %lims.\n", (finish - start) / CLOCKS_PER_SEC * 1000);
+    printf("Running one billion cycles took %lims.\n", (finish - start) * 1000 / CLOCKS_PER_SEC);
     freeManager(man);
     return 0;
 }

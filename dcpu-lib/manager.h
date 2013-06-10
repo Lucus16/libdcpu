@@ -5,11 +5,11 @@
 
 typedef struct Manager Manager;
 
-typedef struct Manager {
+struct Manager {
     Collection dcpus;
     Collection devices;
     Collection floppies;
-} Manager;
+};
 
 Manager* newManager();
 void freeManager(Manager* man);

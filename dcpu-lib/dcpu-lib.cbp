@@ -53,6 +53,20 @@
 				<Option object_output="obj/Benchmark" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="/home/lars/dcpu/quickasm/test.bin" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="WinBenchmark">
+				<Option output="bin/WinBenchmark/libdcpu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/WinBenchmark" />
+				<Option type="1" />
+				<Option compiler="mingw32_compiler" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-DNDEBUG" />
@@ -80,6 +94,7 @@
 		<Unit filename="dcpu.h" />
 		<Unit filename="doc.txt">
 			<Option target="Benchmark" />
+			<Option target="WinBenchmark" />
 		</Unit>
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
@@ -92,6 +107,7 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 			<Option target="Benchmark" />
+			<Option target="WinBenchmark" />
 		</Unit>
 		<Unit filename="main.h" />
 		<Unit filename="manager.c">

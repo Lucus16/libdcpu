@@ -6,12 +6,12 @@
 typedef int64_t eventtime;
 typedef struct Event Event;
 
-typedef struct Event {
+struct Event {
     void (*ontrigger)(void*);
     void* data;
     eventtime time;
     Event* nextevent;
-} Event;
+};
 
 /* The first event in the eventchain is a dummy event.
  * ontrigger points to NULL and time is the current time.
