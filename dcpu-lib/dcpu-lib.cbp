@@ -48,9 +48,9 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
-			<Target title="Debugger">
-				<Option output="bin/Debugger/libdcpu" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debugger/" />
+			<Target title="Benchmark">
+				<Option output="bin/Benchmark/libdcpu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Benchmark" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -66,10 +66,6 @@
 			<Add option="-Wall" />
 			<Add option="-fPIC" />
 		</Compiler>
-		<Unit filename="cli.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="cli.h" />
 		<Unit filename="clock.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -83,7 +79,7 @@
 		</Unit>
 		<Unit filename="dcpu.h" />
 		<Unit filename="doc.txt">
-			<Option target="Debugger" />
+			<Option target="Benchmark" />
 		</Unit>
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
@@ -95,7 +91,7 @@
 		<Unit filename="m35fd.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
-			<Option target="Debugger" />
+			<Option target="Benchmark" />
 		</Unit>
 		<Unit filename="main.h" />
 		<Unit filename="manager.c">
