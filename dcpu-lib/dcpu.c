@@ -86,17 +86,17 @@ int dumpMemory(DCPU* dcpu, char* filename) {
 
 //Returns the number of cycles executed
 int docycles(DCPU* dcpu, cycles_t cyclestodo) {
-    static int valueLengths[64] = {
+    static const int valueLengths[64] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         1,1,1,1,1,1,1,1,0,0,1,0,0,0,1,1,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
-    static int validBasic[32] = {
+    static const int validBasic[32] = {
         0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
         1,1,1,1,1,1,1,1,0,0,1,1,0,0,1,1
     };
-    static int validAdvanced[32] = {
+    static const int validAdvanced[32] = {
         0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,
         1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0
     };

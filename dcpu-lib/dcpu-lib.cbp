@@ -82,6 +82,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="dcpu.h" />
+		<Unit filename="disassembly.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="disassembly.h" />
 		<Unit filename="doc.txt">
 			<Option target="Debugger" />
 		</Unit>

@@ -13,3 +13,21 @@ typedef struct event {
 
 Event ha
 
+CLI
+
+new dcpu
+select dcpu
+del dcpu
+docycles
+step
+help
+status
+load floppy
+load read-only floppy
+insert floppy
+add clock
+add m35fd
+flash dcpu
+flash floppy
+load
+

@@ -38,6 +38,9 @@ void runCommand(CLIData* clidata, char input[82]) {
     char tmpstr2[82];
     int tmpint;
     Manager* man = clidata->man;
+    if (input[0] == '#') {
+        return;
+    }
     if (sscanf(input, "new dcpu %s", tmpstr) == 1) {
         DCPU* tmpdcpu = man_newDCPU(man);
         snprintf(tmpdcpu->name, 40, "%s", tmpstr);
@@ -103,6 +106,12 @@ void runCommand(CLIData* clidata, char input[82]) {
     if (strcmp(input, "step") == 0) {
         tmpint = docycles(clidata->dcpu, -1);
         printf("%i cycles were executed on main dcpu.\n", tmpint);
+        return;
+    }
+    if (strcmp(input, "help") == 0) {
+        printf("Available commands: new dcpu, select dcpu, del dcpu, docycles, step, help, \n"
+               "load floppy, load read-only floppy, insert floppy, add clock, add m35fd, \n"
+               "flash dcpu, flash floppy, load.\n");
         return;
     }
     if (strcmp(input, "status") == 0) {
