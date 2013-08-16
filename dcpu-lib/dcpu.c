@@ -110,17 +110,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             free(del);
             eventchain->nextevent = event;
         }
-        instruction = dcpu->mem[dcpu->regPC++];
-        opcode = instruction & 0x1f;
-        arga = instruction >> 10;
-        argb = (instruction >> 5) & 0x1f;
-        if (dcpu->skipping) {
-            dcpu->cycleno++;
-            dcpu->regPC += valueLengths[arga] + valueLengths[argb];
-            dcpu->skipping = ((opcode >> 3) == 2);
-            continue;
-        }
-        if (dcpu->interruptCount != 0 && !dcpu->queuing) {
+        if (dcpu->interruptCount != 0 && !dcpu->queuing && !dcpu->skipping) {
             if (dcpu->regIA != 0) {
                 push(dcpu, dcpu->regPC);
                 push(dcpu, dcpu->regA);
@@ -130,6 +120,16 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             }
             dcpu->firstInterrupt++;
             dcpu->interruptCount--;
+        }
+        instruction = dcpu->mem[dcpu->regPC++];
+        opcode = instruction & 0x1f;
+        arga = instruction >> 10;
+        argb = (instruction >> 5) & 0x1f;
+        if (dcpu->skipping) {
+            dcpu->cycleno++;
+            dcpu->regPC += valueLengths[arga] + valueLengths[argb];
+            dcpu->skipping = ((opcode >> 3) == 2);
+            continue;
         }
         switch (arga) {
             case 0:
