@@ -98,10 +98,11 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
     Super* super;
     wordu aValue, bValue;
     word instruction, setValue;
-    int opcode, arga, argb, tmp;
+    int opcode, arga, argb, tmp, bAddr;
     bool doSet = false;
+    Event** eventAddress = &eventchain->nextevent;
     while ((dcpu->cycleno < targetcycles) && dcpu->running) {
-        event = eventchain->nextevent;
+        event = *eventAddress;
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
             del = event;
@@ -246,199 +247,202 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         if (opcode != 0) {
             switch (argb) {
                 case 0:
-                    bValue.u = dcpu->regA;
+                    bAddr = -12;
                     break;
                 case 1:
-                    bValue.u = dcpu->regB;
+                    bAddr = -11;
                     break;
                 case 2:
-                    bValue.u = dcpu->regC;
+                    bAddr = -10;
                     break;
                 case 3:
-                    bValue.u = dcpu->regX;
+                    bAddr = -9;
                     break;
                 case 4:
-                    bValue.u = dcpu->regY;
+                    bAddr = -8;
                     break;
                 case 5:
-                    bValue.u = dcpu->regZ;
+                    bAddr = -7;
                     break;
                 case 6:
-                    bValue.u = dcpu->regI;
+                    bAddr = -6;
                     break;
                 case 7:
-                    bValue.u = dcpu->regJ;
+                    bAddr = -5;
                     break;
                 case 8:
-                    bValue.u = dcpu->mem[dcpu->regA];
+                    bAddr = dcpu->regA;
                     break;
                 case 9:
-                    bValue.u = dcpu->mem[dcpu->regB];
+                    bAddr = dcpu->regB;
                     break;
                 case 10:
-                    bValue.u = dcpu->mem[dcpu->regC];
+                    bAddr = dcpu->regC;
                     break;
                 case 11:
-                    bValue.u = dcpu->mem[dcpu->regX];
+                    bAddr = dcpu->regX;
                     break;
                 case 12:
-                    bValue.u = dcpu->mem[dcpu->regY];
+                    bAddr = dcpu->regY;
                     break;
                 case 13:
-                    bValue.u = dcpu->mem[dcpu->regZ];
+                    bAddr = dcpu->regZ;
                     break;
                 case 14:
-                    bValue.u = dcpu->mem[dcpu->regI];
+                    bAddr = dcpu->regI;
                     break;
                 case 15:
-                    bValue.u = dcpu->mem[dcpu->regJ];
+                    bAddr = dcpu->regJ;
                     break;
                 case 16:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regA + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 17:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regB + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 18:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regC + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 19:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regX + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 20:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regY + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 21:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regZ + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 22:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regI + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 23:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regJ + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 24:
-                    bValue.u = dcpu->mem[--dcpu->regSP];
+                    bAddr = --dcpu->regSP;
                     break;
                 case 25:
-                    bValue.u = dcpu->mem[dcpu->regSP];
+                    bAddr = dcpu->regSP;
                     break;
                 case 26:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[(dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff];
+                    bAddr = (dcpu->regSP + dcpu->mem[dcpu->regPC++]) & 0xffff;
                     break;
                 case 27:
-                    bValue.u = dcpu->regSP;
+                    bAddr = -4;
                     break;
                 case 28:
-                    bValue.u = dcpu->regPC;
+                    bAddr = -3;
                     break;
                 case 29:
-                    bValue.u = dcpu->regEX;
+                    bAddr = -2;
                     break;
                 case 30:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[dcpu->mem[dcpu->regPC++]];
+                    bAddr = dcpu->mem[dcpu->regPC++];
                     break;
                 case 31:
                     dcpu->cycleno++;
-                    bValue.u = dcpu->mem[dcpu->regPC++];
+                    bAddr = dcpu->regPC++;
                     break;
             }
 
+            bValue.u = *(dcpu->mem + bAddr);
+            if (argb == 31) { bAddr = -13; }
+
             switch (opcode) {
                 case 1: //SET
-                    setB(dcpu, argb, aValue.u);
+                    *(dcpu->mem + bAddr) = aValue.u;
                     dcpu->cycleno += 1;
                     break;
                 case 2: //ADD
-                    setB(dcpu, argb, bValue.u + aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u + aValue.u;
                     dcpu->regEX = bValue.u + aValue.u > 0xffff ? 1 : 0;
                     dcpu->cycleno += 2;
                     break;
                 case 3: //SUB
-                    setB(dcpu, argb, bValue.u - aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u - aValue.u;
                     dcpu->regEX = bValue.u - aValue.u < 0 ? -1 : 0;
                     dcpu->cycleno += 2;
                     break;
                 case 4: //MUL
-                    setB(dcpu, argb, bValue.u * aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u * aValue.u;
                     dcpu->regEX = (bValue.u * aValue.u) >> 16;
                     dcpu->cycleno += 2;
                     break;
                 case 5: //MLI
-                    setB(dcpu, argb, bValue.s * aValue.s);
+                    *(dcpu->mem + bAddr) = bValue.s * aValue.s;
                     dcpu->regEX = (bValue.s * aValue.s) >> 16;
                     dcpu->cycleno += 2;
                     break;
                 case 6: //DIV
                     if (aValue.u == 0) {
-                        setB(dcpu, argb, 0);
+                        *(dcpu->mem + bAddr) = 0;
                         dcpu->regEX = 0;
                     } else {
-                        setB(dcpu, argb, bValue.u / aValue.u);
+                        *(dcpu->mem + bAddr) = bValue.u / aValue.u;
                         dcpu->regEX = (bValue.u << 16) / aValue.u;
                     }
                     dcpu->cycleno += 3;
                     break;
                 case 7: //DVI
                     if (aValue.s == 0) {
-                        setB(dcpu, argb, 0);
+                        *(dcpu->mem + bAddr) = 0;
                         dcpu->regEX = 0;
                     } else {
-                        setB(dcpu, argb, bValue.s / aValue.s);
+                        *(dcpu->mem + bAddr) = bValue.s / aValue.s;
                         dcpu->regEX = (bValue.s << 16) / aValue.s;
                     }
                     dcpu->cycleno += 3;
                     break;
                 case 8: //MOD
                     if (aValue.u == 0) {
-                        setB(dcpu, argb, 0);
+                        *(dcpu->mem + bAddr) = 0;
                     } else {
-                        setB(dcpu, argb, bValue.u % aValue.u);
+                        *(dcpu->mem + bAddr) = bValue.u % aValue.u;
                     }
                     dcpu->cycleno += 3;
                     break;
                 case 9: //MDI
                     if (aValue.s == 0) {
-                        setB(dcpu, argb, 0);
+                        *(dcpu->mem + bAddr) = 0;
                     } else {
-                        setB(dcpu, argb, bValue.s % aValue.s);
+                        *(dcpu->mem + bAddr) = bValue.s % aValue.s;
                     }
                     dcpu->cycleno += 3;
                     break;
                 case 10: //AND
-                    setB(dcpu, argb, bValue.u & aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u & aValue.u;
                     dcpu->cycleno += 1;
                     break;
                 case 11: //BOR
-                    setB(dcpu, argb, bValue.u | aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u | aValue.u;
                     dcpu->cycleno += 1;
                     break;
                 case 12: //XOR
-                    setB(dcpu, argb, bValue.u ^ aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u ^ aValue.u;
                     dcpu->cycleno += 1;
                     break;
                 case 13: //SHR
-                    setB(dcpu, argb, bValue.u >> aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u >> aValue.u;
                     dcpu->regEX = ((int)bValue.u << 16) >> aValue.u;
                     dcpu->cycleno += 1;
                     break;
                 case 14: //ASR
-                    setB(dcpu, argb, bValue.s >> aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.s >> aValue.u;
                     dcpu->regEX = ((int)bValue.s << 16) >> aValue.u;
                     dcpu->cycleno += 1;
                     break;
                 case 15: //SHL
-                    setB(dcpu, argb, bValue.u << aValue.u);
+                    *(dcpu->mem + bAddr) = bValue.u << aValue.u;
                     dcpu->regEX = ((int)bValue.u << aValue.u) >> 16;
                     dcpu->cycleno += 1;
                     break;
@@ -476,24 +480,24 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
                     break;
                 case 26: //ADX
                     tmp = bValue.u + aValue.u + dcpu->regEX;
-                    setB(dcpu, argb, tmp);
+                    *(dcpu->mem + bAddr) = tmp;
                     dcpu->regEX = tmp > 0xffff ? 1 : 0;
                     dcpu->cycleno += 3;
                     break;
                 case 27: //SBX
                     tmp = bValue.u - aValue.u + dcpu->regEX;
-                    setB(dcpu, argb, tmp);
+                    *(dcpu->mem + bAddr) = tmp;
                     dcpu->regEX = tmp > 0xffff ? 1 : (tmp < 0 ? -1 : 0);
                     dcpu->cycleno += 3;
                     break;
                 case 30: //STI
-                    setB(dcpu, argb, aValue.u);
+                    *(dcpu->mem + bAddr) = aValue.u;
                     dcpu->regI++;
                     dcpu->regJ++;
                     dcpu->cycleno += 2;
                     break;
                 case 31: //STD
-                    setB(dcpu, argb, aValue.u);
+                    *(dcpu->mem + bAddr) = aValue.u;
                     dcpu->regI--;
                     dcpu->regJ--;
                     dcpu->cycleno += 2;

@@ -40,9 +40,10 @@ struct DCPU {
     int interruptCount;
     Collection devices;
     Event* eventchain;
+    word discardedValue; //used when the resultvalue is discarded
     word reg[12]; //A, B, C, X, Y, Z, I, J, SP, PC, EX, IA
-    word interrupts[256];
     word mem[65536];
+    word interrupts[256];
 };
 
 struct Device {
