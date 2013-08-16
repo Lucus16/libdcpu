@@ -53,7 +53,7 @@
 				<Option object_output="obj/Benchmark" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="/home/lars/dcpu/quickasm/test.bin" />
+				<Option parameters="/home/lars/dcpu/quickasm/prime.bin" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-DNDEBUG" />
