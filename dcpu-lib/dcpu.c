@@ -117,7 +117,7 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         if (dcpu->skipping) {
             dcpu->cycleno++;
             dcpu->regPC += valueLengths[arga] + valueLengths[argb];
-            dcpu->skipping = (opcode > 0xf && opcode < 0x18);
+            dcpu->skipping = ((opcode >> 3) == 2);
             continue;
         }
         if (dcpu->interruptCount != 0 && !dcpu->queuing) {
@@ -614,98 +614,3 @@ void addInterrupt(DCPU* dcpu, word value) {
     }
 }
 
-void setB(DCPU* dcpu, int argb, word value) {
-    switch (argb) {
-        case 0:
-            dcpu->regA = value;
-            return;
-        case 1:
-            dcpu->regB = value;
-            return;
-        case 2:
-            dcpu->regC = value;
-            return;
-        case 3:
-            dcpu->regX = value;
-            return;
-        case 4:
-            dcpu->regY = value;
-            return;
-        case 5:
-            dcpu->regZ = value;
-            return;
-        case 6:
-            dcpu->regI = value;
-            return;
-        case 7:
-            dcpu->regJ = value;
-            return;
-        case 8:
-            dcpu->mem[dcpu->regA] = value;
-            return;
-        case 9:
-            dcpu->mem[dcpu->regB] = value;
-            return;
-        case 10:
-            dcpu->mem[dcpu->regC] = value;
-            return;
-        case 11:
-            dcpu->mem[dcpu->regX] = value;
-            return;
-        case 12:
-            dcpu->mem[dcpu->regY] = value;
-            return;
-        case 13:
-            dcpu->mem[dcpu->regZ] = value;
-            return;
-        case 14:
-            dcpu->mem[dcpu->regI] = value;
-            return;
-        case 15:
-            dcpu->mem[dcpu->regJ] = value;
-            return;
-        case 16:
-            dcpu->mem[(dcpu->regA + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 17:
-            dcpu->mem[(dcpu->regB + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 18:
-            dcpu->mem[(dcpu->regC + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 19:
-            dcpu->mem[(dcpu->regX + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 20:
-            dcpu->mem[(dcpu->regY + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 21:
-            dcpu->mem[(dcpu->regZ + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 22:
-            dcpu->mem[(dcpu->regI + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 23:
-            dcpu->mem[(dcpu->regJ + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 24:
-        case 25:
-            dcpu->mem[dcpu->regSP] = value;
-            return;
-        case 26:
-            dcpu->mem[(dcpu->regSP + dcpu->mem[(dcpu->regPC - 1) & 0xffff]) & 0xffff] = value;
-            return;
-        case 27:
-            dcpu->regSP = value;
-            return;
-        case 28:
-            dcpu->regPC = value;
-            return;
-        case 29:
-            dcpu->regEX = value;
-            return;
-        case 30:
-            dcpu->mem[dcpu->mem[(dcpu->regPC - 1) & 0xffff]] = value;
-            return;
-    }
-}
