@@ -11,6 +11,10 @@ DCPU* newDCPU() {
         destroyDCPU(dcpu);
         return NULL;
     }
+    if (initCollection(&dcpu->breakpoints, 16) != 0) {
+        destroyDCPU(dcpu);
+        return NULL;
+    }
     dcpu->eventchain = newChain();
     if (dcpu->eventchain == NULL) {
         destroyDCPU(dcpu);
@@ -23,6 +27,7 @@ DCPU* newDCPU() {
 
 void destroyDCPU(DCPU* dcpu) {
     destroyChain(dcpu->eventchain);
+    free(dcpu->breakpoints.data);
     free(dcpu->devices.data);
     free(dcpu);
     //NOTE: Does not free the devices themselves.
@@ -124,6 +129,10 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
         //if (dcpu->onfire && dcpu->onfirefn) {
         //    dcpu->onfirefn(dcpu);
         //} //Disabled for speed, may be reenabled in a seperate docyclesonfire()
+        if (oldCycles != dcpu->cycleno && collectionDel(&dcpu->breakpoints, (void*)dcpu->regPC) == 0) {
+            collectionAdd(&dcpu->breakpoints, (void*)dcpu->regPC);
+            return dcpu->cycleno - oldCycles;
+        }
         event = eventchain->nextevent;
         while (event != NULL && event->time <= dcpu->cycleno) {
             event->ontrigger(event->data);
@@ -131,6 +140,17 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             event = event->nextevent;
             free(del);
             eventchain->nextevent = event;
+        }
+        if (dcpu->interruptCount != 0 && !dcpu->queuing && !dcpu->skipping) {
+            if (dcpu->regIA != 0) {
+                push(dcpu, dcpu->regPC);
+                push(dcpu, dcpu->regA);
+                dcpu->regPC = dcpu->regIA;
+                dcpu->regA = dcpu->interrupts[dcpu->firstInterrupt];
+                dcpu->queuing = true;
+            }
+            dcpu->firstInterrupt++;
+            dcpu->interruptCount--;
         }
         instruction = dcpu->mem[dcpu->regPC++];
         opcode = instruction & 0x1f;
@@ -141,17 +161,6 @@ int docycles(DCPU* dcpu, cycles_t cyclestodo) {
             dcpu->regPC += valueLengths[arga] + valueLengths[argb];
             dcpu->skipping = (opcode > 0xf && opcode < 0x18);
             continue;
-        }
-        if (dcpu->interruptCount != 0 && !dcpu->queuing) {
-            if (dcpu->regIA != 0) {
-                push(dcpu, dcpu->regPC);
-                push(dcpu, dcpu->regA);
-                dcpu->regPC = dcpu->regIA;
-                dcpu->regA = dcpu->interrupts[dcpu->firstInterrupt];
-                dcpu->queuing = true;
-            }
-            dcpu->firstInterrupt++;
-            dcpu->interruptCount--;
         }
         if (validBasic[opcode] || (opcode == 0 && validAdvanced[argb])) {
             switch (arga) {

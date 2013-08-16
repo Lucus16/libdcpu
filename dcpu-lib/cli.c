@@ -33,10 +33,20 @@ void printStatus(DCPU* dcpu) {
            dcpu->regZ, dcpu->mem[dcpu->regZ], dcpu->mem[(dcpu->regSP + 5) & 0xffff]);
 }
 
+void printMemory(DCPU* dcpu, int start, int len) {
+    int i;
+    start = start & 0xffff;
+    for (i = 0; i < (len < 0x10000 ? len : 0x10000); i += 8) {
+        printf("0x%.4x: 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x\n", (start+i) & 0xffff,
+               dcpu->mem[(start+i+0)&0xffff], dcpu->mem[(start+i+1)&0xffff], dcpu->mem[(start+i+2)&0xffff], dcpu->mem[(start+i+3)&0xffff],
+               dcpu->mem[(start+i+4)&0xffff], dcpu->mem[(start+i+5)&0xffff], dcpu->mem[(start+i+6)&0xffff], dcpu->mem[(start+i+7)&0xffff]);
+    }
+}
+
 void runCommand(CLIData* clidata, char input[82]) {
     char tmpstr[82];
     char tmpstr2[82];
-    int tmpint;
+    int tmpint, tmpint2;
     Manager* man = clidata->man;
     if (input[0] == '#') {
         return;
@@ -119,6 +129,34 @@ void runCommand(CLIData* clidata, char input[82]) {
             printf("There is no main dcpu to display the status of.\n");
         } else {
             printStatus(clidata->dcpu);
+        }
+        return;
+    }
+    if (sscanf(input, "mem %i %i", &tmpint, &tmpint2) == 2) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to display the memory of.\n");
+        } else {
+            printMemory(clidata->dcpu, tmpint, tmpint2);
+        }
+        return;
+    }
+    if (sscanf(input, "add bp %i", &tmpint) == 1) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to add a breakpoint to.\n");
+        } else {
+            collectionAdd(&clidata->dcpu->breakpoints, (void*)tmpint);
+        }
+        return;
+    }
+    if (sscanf(input, "del bp %i", &tmpint) == 1) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to remove a breakpoint from.\n");
+        } else {
+            if (collectionDel(&clidata->dcpu->breakpoints, (void*)tmpint) == 1) {
+                printf("There is no such breakpoint.\n");
+            } else {
+                printf("Breakpoint removed.\n");
+            }
         }
         return;
     }
@@ -238,7 +276,9 @@ void cliMainLoop() {
         if (l == 0) { continue; }
         if (strncmp(input, "quit", 4) == 0) {
             break;
-        } else if (strcmp(input, "q") == 0) {
+        } else if (strncmp(input, "q", 1) == 0) {
+            break;
+        } else if (strncmp(input, "exit", 4) == 0) {
             break;
         } else {
             runCommand(clidata, input);

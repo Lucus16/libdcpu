@@ -44,6 +44,7 @@ typedef struct DCPU {
     void (*oninvalid)(DCPU*);
     void (*onbreak)(DCPU*);
     Collection devices;
+    Collection breakpoints;
     Event* eventchain;
     word reg[12]; //A, B, C, X, Y, Z, I, J, SP, PC, EX, IA
     word interrupts[256];
