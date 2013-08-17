@@ -55,11 +55,12 @@
 				<Option compiler="gcc" />
 				<Option parameters="/home/lars/dcpu/quickasm/test.bin" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="pthread" />
 				</Linker>
 			</Target>
 			<Target title="WinBenchmark">
@@ -74,16 +75,6 @@
 				<Linker>
 					<Add option="-s" />
 				</Linker>
-			</Target>
-			<Target title="Benchmark Debug">
-				<Option output="bin/BenchmarkDebug/libdcpu" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/BenchmarkDebug" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option parameters="/home/lars/dcpu/quickasm/test.bin" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
 			</Target>
 		</Build>
 		<Compiler>
@@ -105,7 +96,6 @@
 		<Unit filename="doc.txt">
 			<Option target="Benchmark" />
 			<Option target="WinBenchmark" />
-			<Option target="Benchmark Debug" />
 		</Unit>
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
@@ -119,7 +109,6 @@
 			<Option compilerVar="CC" />
 			<Option target="Benchmark" />
 			<Option target="WinBenchmark" />
-			<Option target="Benchmark Debug" />
 		</Unit>
 		<Unit filename="main.h" />
 		<Unit filename="manager.c">

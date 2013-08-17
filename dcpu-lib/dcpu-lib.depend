@@ -41,10 +41,11 @@
 1370707825 source:/home/lars/git/libdcpu/dcpu-lib/m35fd.c
 	"m35fd.h"
 
-1376666389 source:/home/lars/git/libdcpu/dcpu-lib/main.c
+1376692858 source:/home/lars/git/libdcpu/dcpu-lib/main.c
 	"main.h"
 	"dcpu.h"
 	"manager.h"
+	"pthread.h"
 	<time.h>
 
 1370738909 source:/home/lars/git/libdcpu/dcpu-lib/manager.c
