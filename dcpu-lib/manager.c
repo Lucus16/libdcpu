@@ -59,7 +59,7 @@ Floppy* man_newFloppy(Manager* man, char* filename, bool writeProtected) {
 Floppy* man_loadFloppy(Manager* man, char* filename, bool writeProtected) {
     Floppy* floppy = malloc(sizeof(Floppy));
     if (floppy == NULL) { return NULL; }
-    if (collectionAdd(&man->floppies, floppy) != 0 || flashFloppy(floppy, filename) != 0) {
+    if (flashFloppy(floppy, filename) != 0 || collectionAdd(&man->floppies, floppy) != 0) {
         free(floppy);
         return NULL;
     }

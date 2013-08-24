@@ -1,10 +1,10 @@
 # depslib dependency file v1.0
-1370613143 source:/home/lars/git/libdcpu/dcpu-lib/clock.c
+1377352086 source:/home/lars/git/libdcpu/dcpu-lib/clock.c
 	"dcpu.h"
 	"manager.h"
 	"clock.h"
 
-1376662282 /home/lars/git/libdcpu/dcpu-lib/dcpu.h
+1377344343 /home/lars/git/libdcpu/dcpu-lib/dcpu.h
 	"main.h"
 	"event.h"
 	"collection.h"
@@ -15,12 +15,12 @@
 	<stdlib.h>
 	<stdio.h>
 
-1376658403 /home/lars/git/libdcpu/dcpu-lib/event.h
+1377344343 /home/lars/git/libdcpu/dcpu-lib/event.h
 	"main.h"
 
 1370372303 /home/lars/git/libdcpu/dcpu-lib/collection.h
 
-1376658403 /home/lars/git/libdcpu/dcpu-lib/manager.h
+1377344343 /home/lars/git/libdcpu/dcpu-lib/manager.h
 	"m35fd.h"
 
 1370805706 /home/lars/git/libdcpu/dcpu-lib/m35fd.h
@@ -32,14 +32,14 @@
 	"main.h"
 	"collection.h"
 
-1376664516 source:/home/lars/git/libdcpu/dcpu-lib/dcpu.c
+1377349670 source:/home/lars/git/libdcpu/dcpu-lib/dcpu.c
 	"dcpu.h"
 
-1376658403 source:/home/lars/git/libdcpu/dcpu-lib/disassembly.c
+1377347992 source:/home/lars/git/libdcpu/dcpu-lib/disassembly.c
 	"main.h"
 	"disassembly.h"
 
-1376658403 /home/lars/git/libdcpu/dcpu-lib/disassembly.h
+1377344343 /home/lars/git/libdcpu/dcpu-lib/disassembly.h
 	"dcpu.h"
 
 1370613112 source:/home/lars/git/libdcpu/dcpu-lib/event.c
@@ -48,19 +48,20 @@
 1370707825 source:/home/lars/git/libdcpu/dcpu-lib/m35fd.c
 	"m35fd.h"
 
-1376658403 source:/home/lars/git/libdcpu/dcpu-lib/main.c
+1377348816 source:/home/lars/git/libdcpu/dcpu-lib/main.c
 	"main.h"
 	"cli.h"
 
-1376658403 /home/lars/git/libdcpu/dcpu-lib/cli.h
+1377344343 /home/lars/git/libdcpu/dcpu-lib/cli.h
 	"manager.h"
 
-1370738909 source:/home/lars/git/libdcpu/dcpu-lib/manager.c
+1377351726 source:/home/lars/git/libdcpu/dcpu-lib/manager.c
 	"dcpu.h"
 	"manager.h"
 	"clock.h"
 
-1376664594 source:/home/lars/git/libdcpu/dcpu-lib/cli.c
+1377350469 source:/home/lars/git/libdcpu/dcpu-lib/cli.c
+	"disassembly.h"
 	"main.h"
 	"cli.h"
 

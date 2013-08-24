@@ -61,6 +61,15 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="Debugger DBG">
+				<Option output="bin/DebuggerDBG/libdcpu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebuggerDBG/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -88,6 +97,7 @@
 		<Unit filename="disassembly.h" />
 		<Unit filename="doc.txt">
 			<Option target="Debugger" />
+			<Option target="Debugger DBG" />
 		</Unit>
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
@@ -100,6 +110,7 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 			<Option target="Debugger" />
+			<Option target="Debugger DBG" />
 		</Unit>
 		<Unit filename="main.h" />
 		<Unit filename="manager.c">

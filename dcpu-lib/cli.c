@@ -1,3 +1,4 @@
+#include "disassembly.h"
 #include "main.h"
 #include "cli.h"
 
@@ -40,6 +41,15 @@ void printMemory(DCPU* dcpu, int start, int len) {
         printf("0x%.4x: 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x, 0x%.4x\n", (start+i) & 0xffff,
                dcpu->mem[(start+i+0)&0xffff], dcpu->mem[(start+i+1)&0xffff], dcpu->mem[(start+i+2)&0xffff], dcpu->mem[(start+i+3)&0xffff],
                dcpu->mem[(start+i+4)&0xffff], dcpu->mem[(start+i+5)&0xffff], dcpu->mem[(start+i+6)&0xffff], dcpu->mem[(start+i+7)&0xffff]);
+    }
+}
+
+void printDisassembly(DCPU* dcpu, int start, int len) {
+    char tmpstr[82];
+    int pos = start;
+    while (pos < start + len) {
+        pos += getDisassembly(tmpstr, dcpu, pos);
+        printf(tmpstr);
     }
 }
 
@@ -140,6 +150,22 @@ void runCommand(CLIData* clidata, char input[82]) {
         }
         return;
     }
+    if (sscanf(input, "mem %i", &tmpint) == 1) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to display the memory of.\n");
+        } else {
+            printMemory(clidata->dcpu, tmpint, 8);
+        }
+        return;
+    }
+    if (sscanf(input, "dis %i %i", &tmpint, &tmpint2) == 2) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to display disassembly from.\n");
+        } else {
+            printDisassembly(clidata->dcpu, tmpint, tmpint2);
+        }
+        return;
+    }
     if (sscanf(input, "add bp %i", &tmpint) == 1) {
         if (clidata->dcpu == NULL) {
             printf("There is no main dcpu to add a breakpoint to.\n");
@@ -156,6 +182,17 @@ void runCommand(CLIData* clidata, char input[82]) {
                 printf("There is no such breakpoint.\n");
             } else {
                 printf("Breakpoint removed.\n");
+            }
+        }
+        return;
+    }
+    if (strcmp(input, "bps") == 0) {
+        if (clidata->dcpu == NULL) {
+            printf("There is no main dcpu to view breakpoints of.\n");
+        } else {
+            int i;
+            for (i = 0; i < clidata->dcpu->breakpoints.used; i++) {
+                printf("Breakpoint %i: 0x%.4x\n", i, clidata->dcpu->breakpoints.data[i]);
             }
         }
         return;
@@ -252,7 +289,9 @@ void runCommand(CLIData* clidata, char input[82]) {
             return;
         }
         while (!feof(file)) {
-            fgets(input, 82, file);
+            if (fgets(input, 82, file) == 0) {
+                break;
+            }
             if (feof(file)) { break; }
             int l = strlen(input);
             if (input[l - 1] == '\n') { input[--l] = '\0'; }
