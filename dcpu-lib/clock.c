@@ -5,7 +5,7 @@
 int initClock(Device* dev) {
     dev->data = malloc(sizeof(Clock));
     if (dev->data == NULL) { return 1; }
-    dev->super.ID = 0x12d0b402ui;
+    dev->super.ID = 0x12d0b402;
     dev->interruptHandler = clockHandler;
     dev->reset = clockReset;
     dev->destroyData = NULL;

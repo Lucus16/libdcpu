@@ -4,8 +4,8 @@
 #include "pthread.h"
 #include <time.h>
 
-const int THREADNUM = 40;
-const int PERTHREAD = 2500;
+const int THREADNUM = 20;
+const int PERTHREAD = 250;
 
 typedef struct ThreadData {
     Manager* man;
