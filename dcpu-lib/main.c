@@ -4,7 +4,7 @@
 int main(int argc, char* argv[]) {
     CLIData* clidata = newCLI();
     int i;
-    for (i = 0; i < argc; i++) {
+    for (i = 1; i < argc; i++) {
         runCommand(clidata, argv[i]);
     }
     char input[82];

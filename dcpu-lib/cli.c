@@ -6,6 +6,8 @@ CLIData* newCLI() {
     CLIData* clidata = malloc(sizeof(CLIData));
     clidata->man = newManager();
     clidata->nextDcpuID = 0;
+    clidata->dcpu = NULL;
+    clidata->floppy = NULL;
     return clidata;
 }
 
@@ -20,7 +22,7 @@ void printStatus(DCPU* dcpu) {
     printf("Queuing:  %c  Interrupts: %-4.1i Devices: %-4.1i B: 0x%.4x [B]: 0x%.4x [+1]: 0x%.4x\n",
            (dcpu->queuing ? 'Y' : 'N'), dcpu->interruptCount, dcpu->devices.used,
            dcpu->regB, dcpu->mem[dcpu->regB], dcpu->mem[(dcpu->regSP + 1) & 0xffff]);
-    printf("On fire:  %c  Cycleno: %-21.1li C: 0x%.4x [C]: 0x%.4x [+2]: 0x%.4x\n",
+    printf("On fire:  %c  Cycleno: %-21.1lli C: 0x%.4x [C]: 0x%.4x [+2]: 0x%.4x\n",
            (dcpu->onfire ? 'Y' : 'N'), dcpu->cycleno,
            dcpu->regC, dcpu->mem[dcpu->regC], dcpu->mem[(dcpu->regSP + 2) & 0xffff]);
     printf("Skipping: %c  Hertz: %-23.1i X: 0x%.4x [X]: 0x%.4x [+3]: 0x%.4x\n",
